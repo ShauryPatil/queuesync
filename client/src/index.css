@@ -92,3 +92,9 @@ button:active { transform: scale(0.97); }
 
 html[data-queuesync-desktop="merchant-operations"] body { background: color-mix(in oklch, var(--background) 88%, #e6f8f8); }
 html[data-queuesync-desktop="merchant-operations"] .mesh-bg { background-image: radial-gradient(circle at 8% 4%, color-mix(in oklch, var(--accent) 58%, transparent) 0, transparent 28%), linear-gradient(145deg, var(--background) 0%, color-mix(in oklch, var(--background) 78%, #e8f7f7) 58%, var(--background) 100%); }
+
+.queue-stage-color-scope .bg-amber-500\/10.text-amber-700,
+.queue-stage-color-scope .bg-amber-500\/10.text-amber-700.dark\:text-amber-300 { background-color: color-mix(in srgb, var(--queue-waiting) 13%, transparent) !important; color: var(--queue-waiting) !important; }
+.queue-stage-color-scope .bg-blue-500\/10.text-blue-700,
+.queue-stage-color-scope .bg-blue-500\/10.text-blue-700.dark\:text-blue-300 { background-color: color-mix(in srgb, var(--queue-called) 13%, transparent) !important; color: var(--queue-called) !important; }
+.queue-stage-color-scope span.bg-primary.text-primary-foreground { background-color: var(--queue-in-service) !important; color: white !important; }

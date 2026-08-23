@@ -9,6 +9,7 @@ import { canTransitionQueue, transitionEvent } from "./queue-state";
 import { emitMerchantEvent, emitPublicBusinessEvent, emitUserEvent } from "./realtime";
 import { deriveWaitEstimate } from "./wait-time";
 import type { QueueStatus, RealtimeEventName } from "../shared/types";
+import { QUEUE_STAGE_KEYS, resolveQueueStageColors } from "../shared/queueStageColors";
 
 const businessInput = z.object({
   name: z.string().min(2).max(160),
@@ -30,6 +31,8 @@ const resourceInput = z.object({
   configuredServiceDurationMinutes: z.number().int().min(5).max(480).default(30),
   isPublic: z.enum(["yes", "no"]).default("yes"),
 });
+
+const queueStageColorsInput = z.object(Object.fromEntries(QUEUE_STAGE_KEYS.map(stage => [stage, z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a six-digit hexadecimal color.")])) as Record<(typeof QUEUE_STAGE_KEYS)[number], z.ZodString>);
 
 function event<T extends Record<string, unknown>>(name: RealtimeEventName, businessId: string, payload: T) {
   return { event: name, businessId, payload, emittedAt: new Date().toISOString() };
@@ -115,6 +118,12 @@ export const appRouter = router({
       await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
       const business = await db.updateBusiness(input.businessId, input.changes);
       await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, eventType: "BUSINESS_UPDATED" });
+      return business;
+    }),
+    queueStageColors: protectedProcedure.input(z.object({ businessId: z.string(), colors: queueStageColorsInput })).mutation(async ({ ctx, input }) => {
+      await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
+      const business = await db.updateBusinessQueueStageColors(input.businessId, resolveQueueStageColors({ queueStageColors: input.colors }));
+      await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, eventType: "QUEUE_STAGE_COLORS_UPDATED", metadata: { queueStageColors: input.colors } });
       return business;
     }),
   }),

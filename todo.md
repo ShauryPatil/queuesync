@@ -60,3 +60,4 @@
 - [x] Add visibly polished animated state transitions and in-progress treatment to merchant live-queue controls.
 - [x] Execute the approved QueueSync application-wide premium visual redesign and motion pass while preserving real operational data and working workflows.
 - [x] Apply the premium QueueSync visual system to the Electron merchant desktop shell and verify its dedicated operational presentation.
+- [x] Add tenant-scoped merchant-configurable queue-stage colors with safe defaults and apply them to live queue status states.

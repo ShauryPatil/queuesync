@@ -17,6 +17,7 @@ import {
   type InsertUser,
 } from "../drizzle/schema";
 import { calculateResourceUtilization, roundedMetric } from "./analytics-metrics";
+import type { QueueStageColors } from "../shared/queueStageColors";
 
 let database: ReturnType<typeof drizzle> | null = null;
 
@@ -144,6 +145,15 @@ export async function createBusiness(input: { ownerId: number; name: string; slu
 export async function updateBusiness(businessId: string, changes: Partial<{ name: string; category: string; description: string; address: string; area: string; phone: string; timezone: string; defaultServiceDurationMinutes: number; isActive: "active" | "suspended" }>) {
   const db = await requireDb();
   await db.update(businesses).set(changes).where(eq(businesses.id, businessId));
+  return getBusinessById(businessId);
+}
+
+export async function updateBusinessQueueStageColors(businessId: string, queueStageColors: QueueStageColors) {
+  const db = await requireDb();
+  const business = await getBusinessById(businessId);
+  if (!business) return undefined;
+  const settings = { ...(business.settings ?? {}), queueStageColors };
+  await db.update(businesses).set({ settings }).where(eq(businesses.id, businessId));
   return getBusinessById(businessId);
 }
 

@@ -1,0 +1,25 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+import { DEFAULT_QUEUE_STAGE_COLORS, resolveQueueStageColors } from "../shared/queueStageColors";
+
+const routerSource = readFileSync(new URL("./routers.ts", import.meta.url), "utf8");
+const workspaceSource = readFileSync(new URL("../client/src/components/QueueStageColorSettings.tsx", import.meta.url), "utf8");
+
+describe("merchant queue-stage colors", () => {
+  it("uses safe defaults and rejects invalid persisted color values", () => {
+    expect(resolveQueueStageColors(null)).toEqual(DEFAULT_QUEUE_STAGE_COLORS);
+    expect(resolveQueueStageColors({ queueStageColors: { waiting: "#123456", called: "not-a-color", in_service: "#00AA00" } })).toMatchObject({ waiting: "#123456", called: DEFAULT_QUEUE_STAGE_COLORS.called, in_service: "#00AA00", completed: DEFAULT_QUEUE_STAGE_COLORS.completed });
+  });
+
+  it("guards configuration writes by tenant membership and presents color inputs to merchants", () => {
+    const procedureStart = routerSource.indexOf("queueStageColors: protectedProcedure");
+    const procedureEnd = routerSource.indexOf("  }),\n  resources", procedureStart);
+    const procedure = routerSource.slice(procedureStart, procedureEnd);
+    expect(procedure).toContain("assertBusinessMember");
+    expect(procedure).toContain("updateBusinessQueueStageColors");
+    expect(procedure).toContain("QUEUE_STAGE_COLORS_UPDATED");
+    expect(workspaceSource).toContain('type="color"');
+    expect(workspaceSource).toContain("Queue display");
+    expect(workspaceSource).toContain("Save queue colors");
+  });
+});
