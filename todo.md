@@ -51,4 +51,4 @@
 - [x] Include user-created future bookings in merchant booking records and current booking-activity analytics.
 - [x] Display the real confirmed-booking count and booking-activity chart in merchant analytics.
 - [x] Add and verify a true confirmed-booking metric and post-booking analytics response for the real advance booking.
-- [ ] Save the QueueSync checkpoint containing the validated future booking and confirmed-booking analytics update.
+- [x] Save the QueueSync checkpoint containing the validated future booking and confirmed-booking analytics update.
