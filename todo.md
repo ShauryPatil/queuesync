@@ -52,3 +52,6 @@
 - [x] Display the real confirmed-booking count and booking-activity chart in merchant analytics.
 - [x] Add and verify a true confirmed-booking metric and post-booking analytics response for the real advance booking.
 - [x] Save the QueueSync checkpoint containing the validated future booking and confirmed-booking analytics update.
+- [x] Fix the mobile dark-mode homepage actions so Explore and Merchant CTAs have clear contrast, tactile affordance, and correct routing.
+- [x] Verify the mobile dark-mode homepage actions visually and confirm Explore scrolling plus Merchant navigation behavior.
+- [x] Verify direct mobile Merchant CTA navigation to the merchant workspace after the dark-mode action repair.

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { Activity, ArrowRight, BarChart3, Building2, CalendarCheck, CircleCheck, Clock3, Gauge, MapPin, Radio, Search, SlidersHorizontal, Sparkles, UsersRound, Zap } from "lucide-react";
 import CustomerNav, { HomeFeatures } from "@/components/CustomerNav";
@@ -37,7 +37,7 @@ export default function Home() {
         <h1 className="display-font mt-5 max-w-3xl break-words text-[clamp(2.45rem,10vw,5.9rem)] font-bold leading-[.98] tracking-[-.06em]">Local service time, <span className="text-primary">made visible.</span></h1>
         <p className="mt-5 max-w-xl text-[clamp(1rem,3.8vw,1.18rem)] leading-7 text-muted-foreground sm:leading-8">Find genuine business availability, book ahead, or join a live queue that stays current wherever you are.</p>
         <div className="mt-5"><LiveFlow /></div>
-        <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap"><Button asChild size="lg" className="w-full rounded-xl shadow-xl shadow-primary/20 sm:w-auto"><Link href="#discover">Explore businesses <ArrowRight className="ml-2 h-4 w-4" /></Link></Button><Button asChild size="lg" variant="outline" className="w-full rounded-xl sm:w-auto"><Link href="/merchant">Run your operations</Link></Button></div>
+        <div className="mt-7 grid gap-3 sm:flex sm:flex-wrap"><Button size="lg" className="w-full rounded-xl bg-[#16c79a] font-bold text-slate-950 shadow-xl shadow-emerald-500/25 hover:bg-[#2cdbb0] sm:w-auto" onClick={() => document.getElementById("discover")?.scrollIntoView({ behavior: "smooth", block: "start" })}>Explore businesses <ArrowRight className="ml-2 h-4 w-4" /></Button><Button size="lg" className="w-full rounded-xl border border-primary/45 bg-card/85 font-bold text-foreground shadow-lg shadow-slate-950/10 hover:bg-secondary sm:w-auto" onClick={() => window.location.assign("/merchant")}>Run your operations</Button></div>
         <div className="mt-8 sm:mt-10"><HomeFeatures /></div>
       </div>
       <div className="space-y-4"><ProductPreview featured={featured} /><MerchantOperationsPreview /></div>

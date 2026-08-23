@@ -31,3 +31,11 @@ The authenticated post-fix `analytics.get` request returned HTTP 200 with a vali
 A future slot from 08:00 to 08:30 UTC on 24 August 2026 was published and booked through QueueSync’s protected slot and booking procedures. The persisted booking is confirmed and appears in the merchant’s upcoming appointments. Booking analytics now count appointment creation within the selected period and display a `Bookings created` metric plus a booking-creation chart, so a future appointment is visible as soon as it is booked.
 
 The analytics summary additionally exposes a true `Confirmed bookings` count. The authenticated mobile analytics view displayed one confirmed booking, one completed service, the booking-creation chart for the appointment date, and the persisted queue-volume chart.
+
+## Mobile dark-mode action repair
+
+The homepage `Explore businesses` action now calls smooth `scrollIntoView` on the discovery section rather than relying on hash routing. It uses a high-contrast teal surface with explicit text color in dark mode. The merchant action retains its direct `/merchant` route with an opaque outlined surface. The repaired dark mobile view was captured at 375px, and the interaction test verifies both the discovery scroll invocation and merchant route destination. The final automated suite contains 20 passing tests.
+
+The Merchant action now uses explicit browser navigation to `/merchant`. Its managed preview destination was directly opened and resolved to the expected merchant authentication gate, confirming the action target is available even when a session is not present.
+
+End-to-end browser validation was completed from the dark-mode homepage: clicking `Run your operations` opened `/merchant` and displayed the merchant sign-in gate, while clicking `Explore businesses` moved the viewport to the `Business discovery` section with the live Shap business record.
