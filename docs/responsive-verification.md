@@ -43,3 +43,7 @@ End-to-end browser validation was completed from the dark-mode homepage: clickin
 ## Primary-action feedback
 
 All shared QueueSync buttons now use a short transform-and-opacity transition with a pressed-scale response, focus visibility, disabled-state protection, and reduced-motion safeguards. Buttons accepting the shared `loading` property expose `aria-busy`, disable duplicate submissions, and display a spinner. The core booking confirmation, queue join, booking cancellation, and profile saving actions use the pending state with explicit in-progress labels. The mobile dark-mode action surface was visually rechecked, and the expanded suite contains 22 passing tests.
+
+## Optimistic merchant queue controls
+
+Merchant queue actions now update the live queue cache before the transition request settles. Calling or starting a customer updates the status immediately; completing, marking a no-show, or cancelling removes the terminal entry immediately. Starting a service also applies the assigned resource name to the queued row so the visible assignment is consistent with the new in-service status. A pre-mutation cache snapshot restores the exact previous queue if server validation rejects the action, while settled requests revalidate live queue, resource, and analytics data to preserve the server as the source of truth. Dedicated regression tests cover immediate advancement, terminal removal, immutable rollback snapshots, and resource assignment; the full suite contains 25 passing tests.
