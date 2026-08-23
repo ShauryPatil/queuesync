@@ -47,3 +47,7 @@ All shared QueueSync buttons now use a short transform-and-opacity transition wi
 ## Optimistic merchant queue controls
 
 Merchant queue actions now update the live queue cache before the transition request settles. Calling or starting a customer updates the status immediately; completing, marking a no-show, or cancelling removes the terminal entry immediately. Starting a service also applies the assigned resource name to the queued row so the visible assignment is consistent with the new in-service status. A pre-mutation cache snapshot restores the exact previous queue if server validation rejects the action, while settled requests revalidate live queue, resource, and analytics data to preserve the server as the source of truth. Dedicated regression tests cover immediate advancement, terminal removal, immutable rollback snapshots, and resource assignment; the full suite contains 25 passing tests.
+
+## Animated merchant queue feedback
+
+The merchant live-queue surface now makes its real-time behavior visible. Queue rows animate into position, status chips morph on state changes, active controls provide an animated confirmation panel, and terminal entries exit smoothly after completion or no-show processing. The empty state presents a live listening signal and explains that new records will animate into the view. All non-essential motion respects reduced-motion preferences. The live-queue screen was rechecked at desktop width, and the regression suite contains 26 passing tests.
