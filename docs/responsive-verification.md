@@ -39,3 +39,7 @@ The homepage `Explore businesses` action now calls smooth `scrollIntoView` on th
 The Merchant action now uses explicit browser navigation to `/merchant`. Its managed preview destination was directly opened and resolved to the expected merchant authentication gate, confirming the action target is available even when a session is not present.
 
 End-to-end browser validation was completed from the dark-mode homepage: clicking `Run your operations` opened `/merchant` and displayed the merchant sign-in gate, while clicking `Explore businesses` moved the viewport to the `Business discovery` section with the live Shap business record.
+
+## Primary-action feedback
+
+All shared QueueSync buttons now use a short transform-and-opacity transition with a pressed-scale response, focus visibility, disabled-state protection, and reduced-motion safeguards. Buttons accepting the shared `loading` property expose `aria-busy`, disable duplicate submissions, and display a spinner. The core booking confirmation, queue join, booking cancellation, and profile saving actions use the pending state with explicit in-progress labels. The mobile dark-mode action surface was visually rechecked, and the expanded suite contains 22 passing tests.

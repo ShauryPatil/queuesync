@@ -55,3 +55,4 @@
 - [x] Fix the mobile dark-mode homepage actions so Explore and Merchant CTAs have clear contrast, tactile affordance, and correct routing.
 - [x] Verify the mobile dark-mode homepage actions visually and confirm Explore scrolling plus Merchant navigation behavior.
 - [x] Verify direct mobile Merchant CTA navigation to the merchant workspace after the dark-mode action repair.
+- [x] Add consistent pressed and pending-state feedback to QueueSync primary action buttons across customer and merchant workflows.
