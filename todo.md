@@ -1,0 +1,28 @@
+# Project TODO
+
+- [x] Define the QueueSync multi-tenant domain model, application boundaries, and shared TypeScript contracts.
+- [x] Add a production-safe database schema and migrations for profiles, businesses, business members, resources, schedules, slots, bookings, queue entries, service sessions, event logs, and notifications.
+- [x] Implement role-based access control for customer, merchant, and admin roles with protected application routes.
+- [x] Implement strict tenant-scoped authorization for every business, resource, booking, queue, analytics, and notification operation.
+- [x] Implement merchant onboarding, business configuration, resource management, operating schedules, and live resource availability controls.
+- [x] Implement customer business discovery with category, availability, and open-status filters backed by database records.
+- [x] Implement a mobile-first advance-booking flow with backend time-slot validation and conflict prevention.
+- [x] Implement a backend queue state machine for waiting, called, in-service, completed, no-show, and cancelled states.
+- [x] Implement event logging for booking, queue, resource, and service lifecycle operations.
+- [x] Implement transparent dynamic wait-time estimates based on active services, queue order, resource availability, historical service data, and configured fallbacks.
+- [x] Implement tenant-scoped real-time queue, booking, resource, notification, and wait-time updates without page refreshes.
+- [x] Implement in-app notifications and notification history from real application events.
+- [x] Implement customer pages for discovery, business details, booking, live queue, bookings, notifications, profile, and settings.
+- [x] Implement merchant pages for dashboard, queue controls, booking management, resources, schedules, analytics, notifications, settings, and operational history.
+- [x] Implement limited admin pages for platform records, account review, and platform-level metrics.
+- [x] Implement analytics calculated only from persisted operational records, including robust empty states and date filters.
+- [x] Create the Electron merchant desktop project sharing the same backend contracts, live operations, and native notification integration.
+- [x] Add secure configuration examples, Supabase database/auth migration guidance, Electron packaging instructions, and a deployment/setup checklist.
+- [x] Add core workflow, authorization, tenant-isolation, booking-conflict, queue-transition, wait-time, and analytics tests.
+- [x] Verify desktop and mobile-responsive UI behavior, run code quality checks, and capture the completed project checkpoint.
+- [x] Add a database-backed open-now business discovery filter using operating schedules and business-local time.
+- [x] Emit and consume tenant-scoped wait-time and public resource updates without requiring customer page refreshes.
+- [x] Add customer profile and settings pages for authenticated account management.
+- [x] Add a merchant operational-history view sourced from persisted event logs.
+- [x] Add limited administrator record-review pages for businesses and account activity.
+- [x] Add automated booking-conflict, analytics, and core workflow tests.

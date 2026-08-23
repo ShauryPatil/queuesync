@@ -10,7 +10,17 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
-    "db:push": "drizzle-kit generate && drizzle-kit migrate"
+    "db:push": "drizzle-kit generate && drizzle-kit migrate",
+    "desktop:dev": "concurrently -k \"pnpm dev\" \"wait-on http://localhost:3000 && electron desktop/main.cjs\"",
+    "desktop:build": "electron-builder --win nsis"
+  },
+  "main": "desktop/main.cjs",
+  "build": {
+    "appId": "com.queuesync.merchant",
+    "productName": "QueueSync Merchant",
+    "directories": { "output": "release" },
+    "files": ["desktop/**/*", "package.json"],
+    "win": { "target": ["nsis"], "signAndEditExecutable": false }
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.693.0",
@@ -69,6 +79,8 @@
     "react-hook-form": "^7.64.0",
     "react-resizable-panels": "^3.0.6",
     "recharts": "^2.15.2",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "streamdown": "^1.4.0",
     "superjson": "^1.13.3",
@@ -90,7 +102,10 @@
     "@vitejs/plugin-react": "^5.0.4",
     "add": "^2.0.6",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^10.0.5",
     "drizzle-kit": "^0.31.4",
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3",
     "esbuild": "^0.25.0",
     "pnpm": "^10.15.1",
     "postcss": "^8.4.47",
@@ -101,7 +116,8 @@
     "typescript": "5.9.3",
     "vite": "^7.1.7",
     "vite-plugin-manus-runtime": "0.0.59",
-    "vitest": "^2.1.4"
+    "vitest": "^2.1.4",
+    "wait-on": "^9.1.0"
   },
   "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af",
   "pnpm": {

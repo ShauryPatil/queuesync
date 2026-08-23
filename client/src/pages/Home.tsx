@@ -1,33 +1,20 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useMemo, useState } from "react";
+import { Link } from "wouter";
+import { ArrowRight, Building2, Clock3, Search, SlidersHorizontal, Sparkles, UsersRound } from "lucide-react";
+import CustomerNav, { HomeFeatures } from "@/components/CustomerNav";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { trpc } from "@/lib/trpc";
+import LiveFlow from "@/components/LiveFlow";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
 export default function Home() {
-  // The useAuth hook provides authentication state.
-  // To implement login/logout, call logout(), or start login from an event
-  // handler: onClick={() => startLogin()} (imported from "@/const"). Never call
-  // startLogin() during render (no href={startLogin()}) — it mints a one-time
-  // nonce cookie and must run only at the moment of navigation.
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
-
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [openNow, setOpenNow] = useState(false);
+  const filters = useMemo(() => ({ query: query || undefined, category: category || undefined, availableOnly, openNow }), [query, category, availableOnly, openNow]);
+  const businesses = trpc.businesses.list.useQuery(filters);
+  const categories = Array.from(new Set((businesses.data ?? []).map(item => item.business.category))).slice(0, 5);
+  return <div className="min-h-screen mesh-bg"><CustomerNav /><main><section className="container relative grid gap-12 py-14 lg:grid-cols-[1.15fr_.85fr] lg:py-24"><div className="soft-rise max-w-3xl"><div className="mb-7 inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1.5 text-xs font-bold text-primary shadow-sm"><Sparkles className="h-3.5 w-3.5" />Live availability, without the wait</div><h1 className="display-font max-w-3xl text-5xl font-bold leading-[1.02] tracking-[-0.055em] sm:text-6xl lg:text-7xl">Local service time, <span className="text-primary">made visible.</span></h1><p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">Find real business availability, book ahead, or join a virtual queue that keeps you updated from wherever you are.</p><div className="mt-5"><LiveFlow /></div><div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link href="/explore"><Button size="lg" className="w-full rounded-xl px-6 shadow-xl shadow-primary/20 sm:w-auto">Explore businesses <ArrowRight className="ml-2 h-4 w-4" /></Button></Link><Link href="/merchant"><Button size="lg" variant="outline" className="w-full rounded-xl px-6 sm:w-auto">Run your operations</Button></Link></div><div className="mt-12"><HomeFeatures /></div></div><div className="soft-rise relative mx-auto w-full max-w-md [animation-delay:80ms]"><div className="absolute -inset-6 -z-10 rounded-[2rem] bg-primary/10 blur-3xl" /><div className="glass overflow-hidden rounded-[2rem] border shadow-2xl shadow-primary/10"><div className="flex items-center justify-between border-b px-6 py-5"><div><p className="text-xs font-bold uppercase tracking-[.15em] text-primary">Queue status</p><p className="mt-1 font-semibold">Built from live records</p></div><span className="h-3 w-3 rounded-full bg-[var(--live)] ring-4 ring-[color-mix(in_srgb,var(--live)_18%,transparent)]" /></div><div className="space-y-4 p-6"><div className="rounded-2xl bg-secondary p-5"><p className="text-sm font-semibold">Your operational view stays honest.</p><p className="mt-2 text-sm leading-6 text-muted-foreground">QueueSync shows an empty state until customers, bookings, and services create genuine operational history.</p></div><div className="grid grid-cols-2 gap-3"><div className="rounded-2xl border bg-card p-4"><UsersRound className="h-4 w-4 text-primary" /><p className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Queue</p><p className="mt-1 text-sm font-semibold">Live position</p></div><div className="rounded-2xl border bg-card p-4"><Building2 className="h-4 w-4 text-primary" /><p className="mt-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Resources</p><p className="mt-1 text-sm font-semibold">Current status</p></div></div></div></div></div></section><section className="container pb-20"><div className="glass rounded-[1.75rem] border p-5 shadow-xl shadow-slate-950/[.03] sm:p-7"><div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-sm font-bold text-primary">Discover nearby operations</p><h2 className="display-font mt-1 text-2xl font-bold tracking-tight">Find time that works for you.</h2></div><label className="flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm text-muted-foreground"><Search className="h-4 w-4" /><Input value={query} onChange={event => setQuery(event.target.value)} placeholder="Business, category, or area" className="h-7 w-full border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 lg:w-64" /></label></div><div className="mt-5 flex flex-wrap gap-2"><Button size="sm" variant={category === "" ? "default" : "outline"} onClick={() => setCategory("")}>All</Button>{categories.map(item => <Button key={item} size="sm" variant={category === item ? "default" : "outline"} onClick={() => setCategory(item)}>{item}</Button>)}<Button size="sm" variant={availableOnly ? "default" : "outline"} onClick={() => setAvailableOnly(value => !value)}><SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />Available now</Button><Button size="sm" variant={openNow ? "default" : "outline"} onClick={() => setOpenNow(value => !value)}><Clock3 className="mr-1.5 h-3.5 w-3.5" />Open now</Button></div><div className="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{businesses.isLoading ? Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-48 animate-pulse rounded-2xl bg-muted" />) : businesses.data?.length ? businesses.data.map(({ business, resourceCount }) => <Link key={business.id} href={`/business/${business.id}`} className="group rounded-2xl border bg-card p-5 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg"><div className="flex items-start justify-between gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-accent text-accent-foreground"><Building2 className="h-5 w-5" /></span><Badge variant="secondary" className="font-semibold">{business.category}</Badge></div><h3 className="mt-6 font-bold tracking-tight">{business.name}</h3><p className="mt-1 min-h-5 text-sm text-muted-foreground">{business.area || business.address || "Location details coming from the business."}</p><div className="mt-5 flex items-center justify-between border-t pt-4 text-xs font-bold text-muted-foreground"><span>{resourceCount} configured resource{Number(resourceCount) === 1 ? "" : "s"}</span><span className="text-primary group-hover:translate-x-1 transition-transform">View availability →</span></div></Link>) : <div className="col-span-full rounded-2xl border border-dashed bg-card/60 p-10 text-center"><Building2 className="mx-auto h-6 w-6 text-muted-foreground" /><p className="mt-4 font-semibold">No businesses match these filters.</p><p className="mt-1 text-sm text-muted-foreground">Try another search, or check back after a local business joins QueueSync.</p></div>}</div></div></section></main></div>;
 }

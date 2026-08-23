@@ -1,0 +1,62 @@
+create type public.app_role as enum ('customer', 'merchant', 'admin');
+create type public.member_role as enum ('owner', 'manager', 'staff');
+create type public.resource_status as enum ('available', 'busy', 'offline', 'maintenance');
+create type public.booking_status as enum ('pending', 'confirmed', 'cancelled', 'completed', 'no_show');
+create type public.queue_status as enum ('waiting', 'called', 'in_service', 'completed', 'no_show', 'cancelled');
+
+create table public.profiles (id uuid primary key references auth.users(id) on delete cascade, display_name text, phone text, role public.app_role not null default 'customer', created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table public.businesses (id uuid primary key default gen_random_uuid(), owner_id uuid not null references public.profiles(id), name text not null, slug text not null unique, category text not null, description text, address text, area text, phone text, timezone text not null default 'Asia/Kolkata', default_service_duration_minutes integer not null default 30 check (default_service_duration_minutes between 5 and 480), is_active boolean not null default true, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table public.business_members (id uuid primary key default gen_random_uuid(), business_id uuid not null references public.businesses(id) on delete cascade, user_id uuid not null references public.profiles(id) on delete cascade, role public.member_role not null default 'staff', created_at timestamptz not null default now(), unique (business_id, user_id));
+create table public.resources (id uuid primary key default gen_random_uuid(), business_id uuid not null references public.businesses(id) on delete cascade, name text not null, resource_type text not null, description text, capacity integer not null default 1 check (capacity > 0), status public.resource_status not null default 'available', configured_service_duration_minutes integer not null default 30 check (configured_service_duration_minutes between 5 and 480), is_public boolean not null default true, created_at timestamptz not null default now(), updated_at timestamptz not null default now(), unique (business_id, name));
+create table public.resource_schedules (id uuid primary key default gen_random_uuid(), business_id uuid not null references public.businesses(id) on delete cascade, resource_id uuid references public.resources(id) on delete cascade, day_of_week smallint not null check (day_of_week between 0 and 6), opens_at time not null, closes_at time not null, is_open boolean not null default true, created_at timestamptz not null default now());
+create table public.slots (id uuid primary key default gen_random_uuid(), business_id uuid not null references public.businesses(id) on delete cascade, resource_id uuid not null references public.resources(id) on delete cascade, starts_at timestamptz not null, ends_at timestamptz not null, capacity integer not null default 1 check (capacity > 0), status text not null default 'available' check (status in ('available', 'blocked', 'closed')), created_at timestamptz not null default now(), check (ends_at > starts_at), unique (resource_id, starts_at, ends_at));
+create table public.bookings (id uuid primary key default gen_random_uuid(), business_id uuid not null references public.businesses(id) on delete cascade, customer_id uuid not null references public.profiles(id), resource_id uuid not null references public.resources(id), slot_id uuid references public.slots(id), status public.booking_status not null default 'confirmed', starts_at timestamptz not null, ends_at timestamptz not null, booking_created_at timestamptz not null default now(), booking_confirmed_at timestamptz, booking_cancelled_at timestamptz, booking_rescheduled_at timestamptz, booking_completed_at timestamptz, cancellation_reason text, notes text, created_at timestamptz not null default now(), updated_at timestamptz not null default now(), check (ends_at > starts_at));
+create table public.queue_entries (id uuid primary key default gen_random_uuid(), business_id uuid not null references public.businesses(id) on delete cascade, customer_id uuid not null references public.profiles(id), resource_id uuid references public.resources(id), booking_id uuid references public.bookings(id), status public.queue_status not null default 'waiting', joined_at timestamptz not null default now(), called_at timestamptz, started_at timestamptz, completed_at timestamptz, no_show_at timestamptz, cancelled_at timestamptz, estimated_wait_minutes integer, estimation_basis text, notes text, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+create table public.service_sessions (id uuid primary key default gen_random_uuid(), business_id uuid not null references public.businesses(id) on delete cascade, queue_entry_id uuid not null unique references public.queue_entries(id), resource_id uuid not null references public.resources(id), customer_id uuid not null references public.profiles(id), started_at timestamptz not null, completed_at timestamptz, duration_minutes integer check (duration_minutes > 0), created_at timestamptz not null default now());
+create table public.event_logs (id uuid primary key default gen_random_uuid(), business_id uuid references public.businesses(id) on delete cascade, actor_id uuid references public.profiles(id), resource_id uuid references public.resources(id), booking_id uuid references public.bookings(id), queue_entry_id uuid references public.queue_entries(id), event_type text not null, metadata jsonb, occurred_at timestamptz not null default now());
+create table public.notifications (id uuid primary key default gen_random_uuid(), user_id uuid not null references public.profiles(id) on delete cascade, business_id uuid references public.businesses(id) on delete cascade, type text not null, title text not null, message text not null, metadata jsonb, read_at timestamptz, created_at timestamptz not null default now());
+
+create index bookings_business_time_idx on public.bookings (business_id, starts_at);
+create index bookings_customer_idx on public.bookings (customer_id, starts_at desc);
+create index queue_business_status_idx on public.queue_entries (business_id, status, joined_at);
+create index sessions_business_time_idx on public.service_sessions (business_id, started_at);
+create index events_business_time_idx on public.event_logs (business_id, occurred_at desc);
+create index notifications_user_read_idx on public.notifications (user_id, read_at, created_at desc);
+
+create or replace function public.is_business_member(target_business_id uuid) returns boolean language sql stable security definer set search_path = public as $$ select exists (select 1 from public.business_members where business_id = target_business_id and user_id = auth.uid()) $$;
+create or replace function public.is_business_owner(target_business_id uuid) returns boolean language sql stable security definer set search_path = public as $$ select exists (select 1 from public.business_members where business_id = target_business_id and user_id = auth.uid() and role = 'owner') $$;
+
+alter table public.profiles enable row level security;
+alter table public.businesses enable row level security;
+alter table public.business_members enable row level security;
+alter table public.resources enable row level security;
+alter table public.resource_schedules enable row level security;
+alter table public.slots enable row level security;
+alter table public.bookings enable row level security;
+alter table public.queue_entries enable row level security;
+alter table public.service_sessions enable row level security;
+alter table public.event_logs enable row level security;
+alter table public.notifications enable row level security;
+
+create policy "profiles_own" on public.profiles for all using (id = auth.uid()) with check (id = auth.uid());
+create policy "business_public_read" on public.businesses for select using (is_active or public.is_business_member(id));
+create policy "business_owner_manage" on public.businesses for update using (public.is_business_owner(id));
+create policy "business_member_read" on public.business_members for select using (user_id = auth.uid() or public.is_business_member(business_id));
+create policy "business_member_owner_manage" on public.business_members for all using (public.is_business_owner(business_id));
+create policy "resources_public_read" on public.resources for select using (is_public or public.is_business_member(business_id));
+create policy "resources_member_manage" on public.resources for all using (public.is_business_member(business_id));
+create policy "schedules_public_read" on public.resource_schedules for select using (exists (select 1 from public.businesses where id = business_id and is_active));
+create policy "schedules_member_manage" on public.resource_schedules for all using (public.is_business_member(business_id));
+create policy "slots_public_read" on public.slots for select using (status = 'available' or public.is_business_member(business_id));
+create policy "slots_member_manage" on public.slots for all using (public.is_business_member(business_id));
+create policy "bookings_customer_or_member" on public.bookings for select using (customer_id = auth.uid() or public.is_business_member(business_id));
+create policy "bookings_customer_create" on public.bookings for insert with check (customer_id = auth.uid());
+create policy "bookings_customer_or_member_update" on public.bookings for update using (customer_id = auth.uid() or public.is_business_member(business_id));
+create policy "queue_customer_or_member" on public.queue_entries for select using (customer_id = auth.uid() or public.is_business_member(business_id));
+create policy "queue_customer_create" on public.queue_entries for insert with check (customer_id = auth.uid());
+create policy "queue_customer_or_member_update" on public.queue_entries for update using (customer_id = auth.uid() or public.is_business_member(business_id));
+create policy "sessions_member_read" on public.service_sessions for select using (customer_id = auth.uid() or public.is_business_member(business_id));
+create policy "sessions_member_manage" on public.service_sessions for all using (public.is_business_member(business_id));
+create policy "events_member_read" on public.event_logs for select using (public.is_business_member(business_id));
+create policy "events_member_write" on public.event_logs for insert with check (public.is_business_member(business_id));
+create policy "notifications_own" on public.notifications for all using (user_id = auth.uid()) with check (user_id = auth.uid());
