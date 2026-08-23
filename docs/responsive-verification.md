@@ -25,3 +25,9 @@ The real queue record uncovered an incompatibility in the hourly analytics aggre
 The authenticated analytics view was captured at 375px and 1440px after the fix. It rendered the completed service, actual service duration, calculated wait, and a queue-volume bar chart derived from the user-created queue entry without a request error.
 
 The authenticated post-fix `analytics.get` request returned HTTP 200 with a valid payload: one completed service, one-minute service duration, zero active queue entries, and populated hourly queue-volume data.
+
+## Advance booking verification
+
+A future slot from 08:00 to 08:30 UTC on 24 August 2026 was published and booked through QueueSync’s protected slot and booking procedures. The persisted booking is confirmed and appears in the merchant’s upcoming appointments. Booking analytics now count appointment creation within the selected period and display a `Bookings created` metric plus a booking-creation chart, so a future appointment is visible as soon as it is booked.
+
+The analytics summary additionally exposes a true `Confirmed bookings` count. The authenticated mobile analytics view displayed one confirmed booking, one completed service, the booking-creation chart for the appointment date, and the persisted queue-volume chart.

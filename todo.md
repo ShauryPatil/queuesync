@@ -46,3 +46,9 @@
 - [x] Save the final QueueSync checkpoint after the real-record analytics correction and verification.
 - [x] Capture the authenticated merchant analytics screen and confirm a successful post-fix analytics response with real records.
 - [x] Confirm the post-fix authenticated analytics request returns valid data without an application error.
+- [x] Create a future bookable slot and complete an advance booking through QueueSync’s validated workflow.
+- [x] Verify that the persisted advance booking appears in merchant records and booking analytics.
+- [x] Include user-created future bookings in merchant booking records and current booking-activity analytics.
+- [x] Display the real confirmed-booking count and booking-activity chart in merchant analytics.
+- [x] Add and verify a true confirmed-booking metric and post-booking analytics response for the real advance booking.
+- [ ] Save the QueueSync checkpoint containing the validated future booking and confirmed-booking analytics update.
