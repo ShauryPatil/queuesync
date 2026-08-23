@@ -47,8 +47,9 @@
   --live: #19d9a4;
 }
 
-* { border-color: var(--border); }
-body { min-width: 320px; background: var(--background); color: var(--foreground); font-family: "Manrope", ui-sans-serif, system-ui, sans-serif; }
+*, *::before, *::after { box-sizing: border-box; border-color: var(--border); }
+html { overflow-x: clip; scroll-behavior: smooth; }
+body { min-width: 320px; overflow-x: clip; background: var(--background); color: var(--foreground); font-family: "Manrope", ui-sans-serif, system-ui, sans-serif; }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 button { transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1); }
 button:active { transform: scale(0.97); }
@@ -63,5 +64,8 @@ button:active { transform: scale(0.97); }
 .queue-rail b { position: relative; z-index: 1; width: .38rem; height: .38rem; border-radius: 999px; background: var(--background); border: 1px solid color-mix(in oklch, var(--live) 60%, var(--border)); }
 .queue-rail b:first-child { background: var(--live); border-color: var(--live); }
 .live-flow-compact .live-copy { display: none; }
+.container { width: min(100% - 2rem, 76rem); margin-inline: auto; }
+@media (min-width: 640px) { .container { width: min(100% - 3rem, 76rem); } }
+@media (max-width: 639px) { .live-flow { flex-wrap: wrap; gap: .4rem .55rem; font-size: .68rem; } .live-copy { flex-basis: 100%; } }
 @media (prefers-reduced-motion: no-preference) { .soft-rise { animation: soft-rise 500ms cubic-bezier(0.23, 1, 0.32, 1) both; } }
 @keyframes soft-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }

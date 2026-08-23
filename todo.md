@@ -26,3 +26,19 @@
 - [x] Add a merchant operational-history view sourced from persisted event logs.
 - [x] Add limited administrator record-review pages for businesses and account activity.
 - [x] Add automated booking-conflict, analytics, and core workflow tests.
+- [x] Redesign QueueSync layout behavior for 320px through 1920px with no clipping, overflow, overlap, or broken interactions.
+- [x] Rebuild the mobile header and right-side navigation drawer with backdrop, focus-safe interaction, close controls, Escape support, and responsive desktop navigation.
+- [x] Rework the landing page into a complete responsive product story using real data or truthful empty states only.
+- [x] Add an application-data-backed live queue and merchant operations preview that renders professional empty states when no operational records exist.
+- [x] Polish customer discovery cards, booking confirmation, live queue, notifications, profile, and settings experiences for mobile and desktop.
+- [x] Prioritize merchant dashboard actions, live queue controls, schedule, analytics empty states, and connected real-time feedback.
+- [x] Add responsive UI tests and verify QueueSync at all required viewport widths before saving the revised project checkpoint.
+- [x] Verify all remaining customer, account, business, merchant history, and admin screens across the responsive viewport matrix, including the open mobile drawer state.
+- [x] Add a truthful landing-page merchant operations preview alongside the real-data customer preview.
+- [x] Add a dedicated booking-confirmation state after a successful booking mutation.
+- [x] Add socket-lifecycle-driven connected status feedback in the merchant workspace.
+- [ ] Save a final post-redesign project checkpoint after completing the remaining verification work.
+- [ ] Capture responsive evidence for merchant operational-history and administrator record-review views using real authenticated records.
+- [x] Verify the mobile navigation drawer in its open state, including backdrop, close control, Escape behavior, and small-screen layout integrity.
+- [x] Capture open mobile drawer visual evidence at 320px and 375px, and add backdrop-dismissal interaction coverage.
+- [x] Capture open mobile drawer visual evidence at 320px and 375px, and add backdrop-dismissal interaction coverage.
