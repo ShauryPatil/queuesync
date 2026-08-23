@@ -15,3 +15,13 @@ The current database intentionally contains no public business record for the un
 The browser-like drawer test exercises the actual header component, confirms that the right-side drawer opens with the Radix overlay, then verifies both its explicit close control and Escape-key dismissal. The final automated suite contains 17 passing tests.
 
 The drawer open state was also captured at 320px and 375px. The panel is opaque, elevated above the overlay, constrained to an appropriate right-side width, and leaves the page behind it non-interactive beneath the dark backdrop. The test suite additionally covers backdrop-click dismissal.
+
+## Real-record verification
+
+After the merchant created a legitimate business, resource, slot, and completed queue entry, the production database contained one business, one completed queue entry, one completed service session, and seven operational events. The merchant operational-history view and administrator platform-review view were captured at 375px and 1440px using these persisted records.
+
+The real queue record uncovered an incompatibility in the hourly analytics aggregation. QueueSync now aggregates persisted queue timestamps and booking start times in TypeScript after tenant-scoped database filtering, rather than relying on database-specific `HOUR` and `DATE` group expressions. The new real-record analytics regression test passes alongside the complete 19-test suite.
+
+The authenticated analytics view was captured at 375px and 1440px after the fix. It rendered the completed service, actual service duration, calculated wait, and a queue-volume bar chart derived from the user-created queue entry without a request error.
+
+The authenticated post-fix `analytics.get` request returned HTTP 200 with a valid payload: one completed service, one-minute service duration, zero active queue entries, and populated hourly queue-volume data.

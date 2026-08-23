@@ -37,8 +37,12 @@
 - [x] Add a truthful landing-page merchant operations preview alongside the real-data customer preview.
 - [x] Add a dedicated booking-confirmation state after a successful booking mutation.
 - [x] Add socket-lifecycle-driven connected status feedback in the merchant workspace.
-- [ ] Save a final post-redesign project checkpoint after completing the remaining verification work.
-- [ ] Capture responsive evidence for merchant operational-history and administrator record-review views using real authenticated records.
+- [x] Save a final post-redesign project checkpoint after completing the remaining verification work.
+- [x] Capture responsive evidence for merchant operational-history and administrator record-review views using real authenticated records.
 - [x] Verify the mobile navigation drawer in its open state, including backdrop, close control, Escape behavior, and small-screen layout integrity.
 - [x] Capture open mobile drawer visual evidence at 320px and 375px, and add backdrop-dismissal interaction coverage.
 - [x] Capture open mobile drawer visual evidence at 320px and 375px, and add backdrop-dismissal interaction coverage.
+- [x] Fix the merchant analytics aggregation failure exposed by real queue records and verify rendered analytics metrics.
+- [x] Save the final QueueSync checkpoint after the real-record analytics correction and verification.
+- [x] Capture the authenticated merchant analytics screen and confirm a successful post-fix analytics response with real records.
+- [x] Confirm the post-fix authenticated analytics request returns valid data without an application error.

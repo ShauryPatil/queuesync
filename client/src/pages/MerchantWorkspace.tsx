@@ -27,7 +27,7 @@ const nav: { id: View; label: string; icon: typeof LayoutDashboard }[] = [
 
 export default function MerchantWorkspace() {
   const { user, loading, isAuthenticated, refresh } = useAuth();
-  const [view, setView] = useState<View>("overview");
+  const [view, setView] = useState<View>(() => { const requestedView = new URLSearchParams(window.location.search).get("view"); return nav.some(item => item.id === requestedView) ? requestedView as View : "overview"; });
   const businesses = trpc.businesses.mine.useQuery(undefined, { enabled: isAuthenticated });
   const [businessId, setBusinessId] = useState<string | null>(null);
   const activeBusinessId = businessId ?? businesses.data?.[0]?.business.id ?? null;
