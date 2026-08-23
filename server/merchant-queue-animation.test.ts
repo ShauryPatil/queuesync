@@ -9,6 +9,6 @@ describe("merchant live-queue motion treatment", () => {
     expect(workspaceSource).toContain("motion.article");
     expect(workspaceSource).toContain("layout=\"position\"");
     expect(workspaceSource).toContain("useReducedMotion");
-    expect(workspaceSource).toContain("Queue changes are reflected instantly");
+    expect(workspaceSource).toContain("Each action updates this local view immediately");
   });
 });

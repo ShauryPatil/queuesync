@@ -17,9 +17,10 @@ describe("QueueSync responsive UI contract", () => {
   it("uses fluid type, truthful empty states, and overflow protection in the customer experience", () => {
     const home = source("client/src/pages/Home.tsx");
     const styles = source("client/src/index.css");
-    expect(home).toContain("text-[clamp(2.45rem,10vw,5.9rem)]");
-    expect(home).toContain("No businesses available yet.");
-    expect(home).toContain("Awaiting the first live record.");
+    expect(home).toContain("text-[clamp(3rem,8.1vw,6.2rem)]");
+    expect(home).toContain("No businesses match this view.");
+    expect(home).toContain("Waiting for the first live record.");
+    expect(home).toContain("MotionReveal");
     expect(styles).toContain("overflow-x: clip");
     expect(styles).toContain("margin-inline: auto");
   });

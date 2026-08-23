@@ -51,3 +51,15 @@ Merchant queue actions now update the live queue cache before the transition req
 ## Animated merchant queue feedback
 
 The merchant live-queue surface now makes its real-time behavior visible. Queue rows animate into position, status chips morph on state changes, active controls provide an animated confirmation panel, and terminal entries exit smoothly after completion or no-show processing. The empty state presents a live listening signal and explains that new records will animate into the view. All non-essential motion respects reduced-motion preferences. The live-queue screen was rechecked at desktop width, and the regression suite contains 26 passing tests.
+
+## Premium visual-system pass
+
+QueueSync was reviewed across the public product story, customer live queue, customer bookings, and the merchant overview, live queue, resources, and analytics views at 1440px and 375px. The redesigned surfaces preserve the soft blue, white, and live-teal identity while introducing a unified sync-thread visual language, stronger typography hierarchy, consistent refined cards, real-data empty states, mobile-safe form controls, and reduced-motion-safe entrance and queue-state motion. The mobile review confirmed that the new hero, account states, operations metrics, live queue empty state, resource controls, and analytics cards remain within the viewport without horizontal clipping.
+
+The redesign was also inspected at 320px and 1920px. At 320px, the public story, customer live queue, resource setup form, and booking-slot controls stack cleanly with readable type and no horizontal scrolling. At 1920px, the landing composition maintains purposeful whitespace and the merchant console uses the available width for its navigation, metrics, charts, live-queue empty state, and analytics comparison panels without stretching content beyond a readable operating width.
+
+## Electron merchant shell
+
+The Electron source now launches the refined merchant workspace as `QueueSync — Merchant Operations` with a matching light operations background, hidden menu bar, delayed show-on-ready behavior, and a compact native menu for refreshing the workspace or opening the customer view. The preload bridge identifies the merchant-operations desktop context so the shared visual system can apply an appropriate shell treatment. A dedicated desktop-shell regression test validates this source contract; the complete suite contains 27 passing tests.
+
+The merchant workspace additionally renders a dedicated desktop-operations ribbon only when the Electron bridge is present. The ribbon identifies the native merchant session, communicates that native queue alerts are enabled, and exposes the desktop refresh shortcut. Successful merchant queue transitions call the native notification bridge without altering the authoritative server state. The component-level Electron-context test and full regression suite contain 28 passing tests.

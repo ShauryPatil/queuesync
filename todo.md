@@ -58,3 +58,5 @@
 - [x] Add consistent pressed and pending-state feedback to QueueSync primary action buttons across customer and merchant workflows.
 - [x] Add optimistic state transitions with rollback and reconciliation for merchant live-queue controls.
 - [x] Add visibly polished animated state transitions and in-progress treatment to merchant live-queue controls.
+- [x] Execute the approved QueueSync application-wide premium visual redesign and motion pass while preserving real operational data and working workflows.
+- [x] Apply the premium QueueSync visual system to the Electron merchant desktop shell and verify its dedicated operational presentation.

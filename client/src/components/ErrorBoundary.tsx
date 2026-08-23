@@ -1,5 +1,4 @@
-import { cn } from "@/lib/utils";
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import { AlertTriangle, RotateCcw, WifiOff } from "lucide-react";
 import { Component, ReactNode } from "react";
 
 interface Props {
@@ -21,35 +20,23 @@ class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  componentDidCatch(error: Error) {
+    console.error("[QueueSync] Unhandled application error", error);
+  }
+
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen p-8 bg-background">
-          <div className="flex flex-col items-center w-full max-w-2xl p-8">
-            <AlertTriangle
-              size={48}
-              className="text-destructive mb-6 flex-shrink-0"
-            />
-
-            <h2 className="text-xl mb-4">An unexpected error occurred.</h2>
-
-            <div className="p-4 w-full rounded bg-muted overflow-auto mb-6">
-              <pre className="text-sm text-muted-foreground whitespace-break-spaces">
-                {this.state.error?.stack}
-              </pre>
-            </div>
-
-            <button
-              onClick={() => window.location.reload()}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg",
-                "bg-primary text-primary-foreground",
-                "hover:opacity-90 cursor-pointer"
-              )}
-            >
-              <RotateCcw size={16} />
-              Reload Page
-            </button>
+        <div className="mesh-bg grid min-h-screen place-items-center p-5">
+          <div className="surface-card empty-illustration w-full max-w-xl rounded-[2rem] p-8 text-center sm:p-12">
+            <span className="signal-orb mx-auto h-16 w-16 text-destructive">
+              <AlertTriangle className="h-6 w-6" />
+            </span>
+            <p className="mt-7 text-xs font-extrabold uppercase tracking-[.16em] text-primary">Connection interrupted</p>
+            <h2 className="display-font mt-3 text-3xl font-bold tracking-[-.05em]">QueueSync needs a fresh start.</h2>
+            <p className="mx-auto mt-4 max-w-md leading-7 text-muted-foreground">We could not load this view safely. Your operational records remain unchanged; refresh to reconnect to the latest verified state.</p>
+            <div className="mx-auto mt-6 flex w-fit items-center gap-2 rounded-full border bg-secondary/60 px-3 py-2 text-xs font-bold text-muted-foreground"><WifiOff className="h-3.5 w-3.5 text-primary" />Safe recovery available</div>
+            <button onClick={() => window.location.reload()} className="mx-auto mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground shadow-md shadow-primary/20 transition hover:-translate-y-px hover:shadow-lg"><RotateCcw className="h-4 w-4" />Reload QueueSync</button>
           </div>
         </div>
       );
