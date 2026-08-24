@@ -25,10 +25,11 @@ describe("QueueSync responsive UI contract", () => {
     expect(styles).toContain("margin-inline: auto");
   });
 
-  it("exposes a controlled theme provider for the light and dark visual systems", () => {
+  it("enforces the dark-only theme without exposing a visual mode switch", () => {
     const app = source("client/src/App.tsx");
     const nav = source("client/src/components/CustomerNav.tsx");
-    expect(app).toContain("switchable");
-    expect(nav).toContain("Switch to");
+    expect(app).toContain("<ThemeProvider>");
+    expect(app).not.toContain("switchable");
+    expect(nav).not.toContain("Switch to");
   });
 });

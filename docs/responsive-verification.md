@@ -99,3 +99,7 @@ Merchant analytics now applies explicit semantic chart styling: axes use muted-f
 The final polish pass strengthened light-mode surface layering, dark-mode panel depth, closing-action contrast, inputs, queue records, empty states, and chart legibility. It also corrected the customer business hero and live-queue action panel where a late generic card treatment had washed out the intended light-theme contrast. Light and dark variants of the real business-detail view were rechecked at 375px, and all 19 test files with 36 tests pass.
 
 The development service was restarted after confirming the shared ExperienceSurface module exists and is imported consistently; it resumed without the earlier stale resolution error. Customer live queue and merchant live queue were then rechecked in both themes at 1440px and 375px. Their empty-state treatments retain high contrast and responsive single-column layouts without fabricating live queue records.
+
+## Dark-only experience
+
+QueueSync now enforces its existing dark visual system across every route. The application ignores former `theme=light` URL preferences, clears saved theme preferences, removes customer navigation mode switches, and uses dark toast treatment. The original dark materials and hierarchy were preserved rather than restyled. Public, business-detail, customer queue, and merchant overview were reviewed at 1440px and 375px with former light-mode URL parameters; all render in the same dark-only system. The regression suite contains 36 passing tests.

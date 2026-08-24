@@ -5,9 +5,10 @@ const styles = readFileSync(new URL("../client/src/index.css", import.meta.url),
 const themeContext = readFileSync(new URL("../client/src/contexts/ThemeContext.tsx", import.meta.url), "utf8");
 
 describe("QueueSync theme consistency", () => {
-  it("keeps a query-selectable dark theme with semantic system activation", () => {
-    expect(themeContext).toContain('get("theme")');
+  it("enforces a dark-only theme with semantic system activation", () => {
+    expect(themeContext).toContain('theme: "dark"');
     expect(themeContext).toContain('root.classList.add("dark")');
+    expect(themeContext).not.toContain('get("theme")');
   });
 
   it("defines dark operational materials for public, customer, and merchant custom surfaces", () => {

@@ -82,3 +82,4 @@
 - [x] Re-verify customer and merchant live queues in light and dark themes at desktop and mobile widths after the final polish fixes.
 - [x] Re-run QueueSync type and regression validation after the runtime and final live-queue verification work.
 - [x] Run final QueueSync type and regression validation after the restarted live-queue service verification.
+- [x] Remove light-mode switching and enforce QueueSync’s existing dark theme across the application without changing dark visual styling.
