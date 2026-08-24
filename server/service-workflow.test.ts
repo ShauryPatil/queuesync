@@ -12,6 +12,14 @@ vi.mock("./db", () => ({
   isBusinessOpenNow: vi.fn(),
   getActiveCustomerQueue: vi.fn(),
   createQueueEntry: vi.fn(),
+  getQueueEntry: vi.fn(),
+  getQueueEntriesAhead: vi.fn(),
+  getHistoricalAverageDuration: vi.fn(),
+  listAvailableResources: vi.fn(),
+  updateQueueEntry: vi.fn(),
+  listLiveQueue: vi.fn(),
+  createNotification: vi.fn(),
+  getBusinessMemberUserIds: vi.fn(),
 }));
 
 import * as db from "./db";
@@ -58,5 +66,29 @@ describe("QueueSync durable service and queue safety workflow", () => {
     vi.mocked(db.getMember).mockResolvedValue({ id: 1, businessId: "business-1", userId: 7, role: "owner", createdAt: now, updatedAt: now });
     const caller = appRouter.createCaller(merchantContext);
     await expect(caller.slots.create({ businessId: "business-1", resourceId: "resource-1", startsAt: new Date("2026-09-02T09:00:00Z"), endsAt: new Date("2026-09-02T09:30:00Z"), capacity: 1, status: "available" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("preserves an assigned service through the persisted customer queue join and live snapshot", async () => {
+    const resource = { id: "resource-1", businessId: "business-1", name: "Station 1", resourceType: "Station", description: null, capacity: 1, status: "available" as const, configuredServiceDurationMinutes: 30, isPublic: "yes" as const, createdAt: now, updatedAt: now };
+    const service = { id: "service-1", businessId: "business-1", name: "Gaming session", description: null, durationMinutes: 30, capacity: 1, priceCents: null, status: "active" as const, createdAt: now, updatedAt: now };
+    const entry = { id: "queue-1", businessId: "business-1", customerId: 11, resourceId: "resource-1", serviceId: "service-1", bookingId: null, activeKey: "business-1:11", status: "waiting" as const, joinedAt: now, calledAt: null, startedAt: null, completedAt: null, noShowAt: null, cancelledAt: null, estimatedWaitMinutes: null, estimationBasis: null, notes: null, createdAt: now, updatedAt: now };
+    vi.mocked(db.getBusinessById).mockResolvedValue({ id: "business-1", ownerId: 7, name: "Real Business", slug: "real-business", category: "Gaming", description: null, address: null, area: null, phone: null, timezone: "Asia/Kolkata", defaultServiceDurationMinutes: 30, settings: null, isActive: "active", createdAt: now, updatedAt: now });
+    vi.mocked(db.isBusinessOpenNow).mockResolvedValue(true);
+    vi.mocked(db.getActiveCustomerQueue).mockResolvedValue(undefined);
+    vi.mocked(db.getBusinessService).mockResolvedValue(service);
+    vi.mocked(db.listBusinessResources).mockResolvedValue([resource]);
+    vi.mocked(db.isResourceAssignedToService).mockResolvedValue(true);
+    vi.mocked(db.createQueueEntry).mockResolvedValue(entry);
+    vi.mocked(db.getQueueEntry).mockResolvedValue(entry);
+    vi.mocked(db.getQueueEntriesAhead).mockResolvedValue([]);
+    vi.mocked(db.getHistoricalAverageDuration).mockResolvedValue({ averageMinutes: null, samples: 0 });
+    vi.mocked(db.listAvailableResources).mockResolvedValue([resource]);
+    vi.mocked(db.updateQueueEntry).mockResolvedValue(entry);
+    vi.mocked(db.listLiveQueue).mockResolvedValue([{ entry, customer: customerContext.user, resource }]);
+    vi.mocked(db.createNotification).mockResolvedValue({ id: "notice-1", userId: 11, businessId: "business-1", type: "queue_joined", title: "You joined the queue", message: "Your live queue position is now available.", metadata: null, readAt: null, createdAt: now });
+    vi.mocked(db.getBusinessMemberUserIds).mockResolvedValue([]);
+    const caller = appRouter.createCaller(customerContext);
+    await expect(caller.queue.join({ businessId: "business-1", serviceId: "service-1", resourceId: "resource-1" })).resolves.toMatchObject({ queueEntry: { serviceId: "service-1" }, snapshot: { service: { id: "service-1", name: "Gaming session" } } });
+    expect(db.createQueueEntry).toHaveBeenCalledWith(expect.objectContaining({ serviceId: "service-1", resourceId: "resource-1" }));
   });
 });

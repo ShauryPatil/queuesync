@@ -50,3 +50,7 @@ Use two authenticated browser sessions or the Electron merchant shell and a cust
 ## Desktop relationship
 
 The Electron merchant shell loads the same `/merchant` application and uses the same authenticated API and real-time transport as the browser. It therefore observes the same business configuration, queue transitions, bookings, notifications, and analytics records. Its initial window background also matches QueueSync’s dark-only operational interface.
+
+## Deferred genuine-data demonstration
+
+The installed workflow is ready for the final live demonstration, but the current business has no saved service record. QueueSync intentionally leaves its catalog and customer booking slots empty rather than inserting a sample offering, appointment, queue entry, notification, or analytics event. The automated regression suite now proves service creation, service-resource assignment, service-specific slot persistence, service-filtered customer booking inputs, service-aware queue snapshots, and service completion side effects including resource release, audit event, and customer notification. When the merchant can provide genuine service details, the remaining walkthrough is: create the service, assign it to an owned resource, publish a future service slot, book it from a customer session or join the live queue, and transition it in the merchant workspace. The resulting stored records will then be visible in customer history, notifications, operational history, and analytics without any change to the application code.
