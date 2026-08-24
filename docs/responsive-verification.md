@@ -75,3 +75,15 @@ Business settings now provides one-click, editable queue palettes for QueueSync,
 ## Category-aware palette recommendation
 
 The merchant color setup now interprets the real business category and suggests the most relevant preset before any colors are saved. For example, a Salon receives a clear `Salon & spa` recommendation with an explicit apply action; clinic, food, fitness, professional-service, and unclassified categories resolve to their matching or QueueSync fallback palettes. The recommendation remains editable, uses the existing tenant-scoped save path, and was reviewed at 1440px and 375px. The expanded regression suite contains 32 passing tests.
+
+## Expressive interface overhaul
+
+QueueSync now uses a stronger shared-event-thread identity rather than repeating neutral cards: a high-contrast teal signal hero, connected journey nodes, customer/merchant surface contrast, a dark record-event thread, a live-index discovery console, and a signal-based closing action. The merchant workspace now carries a dedicated command-center rail, grounded metric cards, and a high-contrast live-queue empty state. Public, merchant overview, and merchant queue layouts were reviewed at 1440px and 375px; the full regression suite contains 32 passing tests.
+
+## Concrete customer and merchant surface refinement
+
+Customer business, live-queue, and account routes now mount explicit event-record experience surfaces, with dedicated business, queue, and account treatments rather than relying only on generic cards. Merchant routes mount an explicit command-center frame around the operational workspace. Customer live queue, customer bookings, merchant overview, and merchant queue were rechecked at 1440px and 375px; all 18 test files and 34 tests pass.
+
+The customer business detail was additionally verified against the existing real `Shap` business record at both widths. Its service context, unavailable-slot state, real configured resource, booking terminal, and live-queue prompt all retain readable contrast and single-column mobile flow. Merchant metric records use explicit verified command markers and the operational queue empty state retains its high-contrast signal canvas at desktop and mobile widths.
+
+Merchant live-queue rows now carry an explicit `merchant-live-queue-row` command marker alongside their optimistic motion behavior. The treatment adds a record label, stage-aligned edge and elevated interaction state without changing the authoritative queue transition path. No live rows were fabricated for visual verification; the existing empty state was reviewed at both widths and the marker is protected by the visual-surface regression test.

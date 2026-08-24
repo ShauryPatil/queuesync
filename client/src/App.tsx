@@ -9,9 +9,10 @@ import BusinessDetails from "./pages/BusinessDetails";
 import LiveQueue from "./pages/LiveQueue";
 import { MyBookings, Notifications, ProfileSettings } from "./pages/CustomerAccount";
 import MerchantWorkspace from "./pages/MerchantWorkspace";
+import { CustomerExperienceSurface } from "./components/ExperienceSurface";
 
 function Router() {
-  return <Switch><Route path="/" component={Home} /><Route path="/explore" component={Home} /><Route path="/business/:businessId" component={BusinessDetails} /><Route path="/live-queue" component={LiveQueue} /><Route path="/my-bookings" component={MyBookings} /><Route path="/notifications" component={Notifications} /><Route path="/profile" component={ProfileSettings} /><Route path="/settings" component={ProfileSettings} /><Route path="/merchant" component={MerchantWorkspace} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
+  return <Switch><Route path="/" component={Home} /><Route path="/explore" component={Home} /><Route path="/business/:businessId" component={BusinessDetails} /><Route path="/live-queue" component={LiveQueue} /><Route path="/my-bookings" component={() => <CustomerExperienceSurface page="account"><MyBookings /></CustomerExperienceSurface>} /><Route path="/notifications" component={() => <CustomerExperienceSurface page="account"><Notifications /></CustomerExperienceSurface>} /><Route path="/profile" component={() => <CustomerExperienceSurface page="account"><ProfileSettings /></CustomerExperienceSurface>} /><Route path="/settings" component={() => <CustomerExperienceSurface page="account"><ProfileSettings /></CustomerExperienceSurface>} /><Route path="/merchant" component={MerchantWorkspace} /><Route path="/404" component={NotFound} /><Route component={NotFound} /></Switch>;
 }
 
 export default function App() {

@@ -63,3 +63,12 @@
 - [x] Add tenant-scoped merchant-configurable queue-stage colors with safe defaults and apply them to live queue status states.
 - [x] Add named industry palette presets to merchant queue-stage color settings while retaining custom color editing and tenant-scoped persistence.
 - [x] Review and refine the merchant industry queue-palette setup experience while preserving custom colors and tenant-scoped saving.
+- [x] Transform QueueSync’s public and merchant UI from a bland minimal presentation into a distinctive, expressive, responsive product experience while preserving real-data workflows.
+- [x] Apply the event-thread visual language to customer business details, customer live queue, and customer account surfaces.
+- [x] Add explicit command-center markup and visual states to merchant overview metrics and live-queue operations.
+- [x] Re-verify concrete customer and merchant page-level visual refinements at desktop and mobile widths before publishing the completed overhaul.
+- [x] Add concrete event-thread class markup in BusinessDetails, LiveQueue, and CustomerAccount components for their dedicated visual treatments.
+- [x] Add explicit command-center classes to merchant overview metrics, live queue rows, and merchant empty states.
+- [x] Verify BusinessDetails, LiveQueue, customer account, merchant overview, and merchant queue at desktop and mobile widths after the concrete markup work.
+- [x] Add and style an explicit command-center marker on merchant live-queue row elements.
+- [x] Re-verify customer and merchant visual routes at desktop and mobile widths after the live-queue row marker update.

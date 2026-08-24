@@ -8,6 +8,7 @@ import { useRealtime } from "@/hooks/useRealtime";
 import { Link } from "wouter";
 import LiveFlow from "@/components/LiveFlow";
 import { MotionReveal } from "@/components/MotionReveal";
+import { CustomerExperienceSurface } from "@/components/ExperienceSurface";
 
 type QueueSnapshot = {
   status: string;
@@ -16,7 +17,7 @@ type QueueSnapshot = {
   estimatedWait: { minutes: number | null; basis: string; message: string };
 };
 
-export default function LiveQueue() {
+function LiveQueueContent() {
   const [businessId, setBusinessId] = useState<string | null>(null);
   useEffect(() => setBusinessId(sessionStorage.getItem("queuesync-active-business")), []);
   const queue = trpc.queue.mine.useQuery({ businessId: businessId ?? "" }, { enabled: Boolean(businessId) });
@@ -25,6 +26,8 @@ export default function LiveQueue() {
   const snapshot = queue.data;
   return <div className="min-h-screen overflow-x-clip mesh-bg"><CustomerNav /><main className="container max-w-5xl py-8 sm:py-12"><MotionReveal><div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"><div><div className="section-kicker">Your live queue</div><h1 className="display-font mt-4 max-w-2xl text-[clamp(2.5rem,6vw,4.4rem)] font-bold leading-[.96] tracking-[-.07em]">Your place is always clear.</h1><p className="mt-4 max-w-xl leading-7 text-muted-foreground">Position and wait context are recalculated from real queue and resource activity. No page refresh is needed.</p></div><div className="inline-flex w-fit items-center gap-2 rounded-full border bg-card px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm"><i className="status-dot status-dot-pulse" />Live updates</div></div></MotionReveal>{!businessId ? <QueueEmpty title="No active queue selected." detail="Join a business queue to place its actual, live status here." href="/explore" action="Explore businesses" /> : queue.isLoading ? <QueueSkeleton /> : snapshot ? <QueueFocus snapshot={snapshot} /> : <QueueEmpty title="No active entry for this business." detail="The queue may have ended, or you can join a new live queue from the business page." href={`/business/${businessId}`} action="Open business" />}</main></div>;
 }
+
+export default function LiveQueue() { return <CustomerExperienceSurface page="queue"><LiveQueueContent /></CustomerExperienceSurface>; }
 
 function QueueFocus({ snapshot }: { snapshot: QueueSnapshot }) {
   const reducedMotion = useReducedMotion();
@@ -37,4 +40,4 @@ function QueueFocus({ snapshot }: { snapshot: QueueSnapshot }) {
 function QueueRail({ position, peopleAhead }: { position: number | null; peopleAhead: number }) { const visibleStops = Math.min(Math.max((position ?? 1), 3), 6); return <div className="mt-7 flex items-center gap-2" aria-label={`${peopleAhead} people ahead`}><span className="status-dot status-dot-pulse" />{Array.from({ length: visibleStops }).map((_, index) => <span key={index} className={`h-2.5 flex-1 rounded-full ${index === visibleStops - 1 ? "bg-primary" : "bg-secondary"}`} />)}<ArrowRight className="h-4 w-4 text-primary" /></div>; }
 function QueueMetric({ icon: Icon, label, value, detail, compact = false }: { icon: typeof UsersRound; label: string; value: string; detail: string; compact?: boolean }) { return <div className="bg-card p-5 sm:p-6"><Icon className="h-4 w-4 text-primary" /><p className="mt-4 text-xs font-extrabold uppercase tracking-[.13em] text-muted-foreground">{label}</p><p className={`metric-value mt-2 font-bold capitalize ${compact ? "text-xl" : "text-3xl"}`}>{value}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{detail}</p></div>; }
 function QueueSkeleton() { return <div className="mt-7 overflow-hidden rounded-[1.85rem] border bg-card"><div className="h-40 animate-pulse bg-muted" /><div className="grid gap-px bg-border sm:grid-cols-3">{Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-44 animate-pulse bg-card" />)}</div></div>; }
-function QueueEmpty({ title, detail, href, action }: { title: string; detail: string; href: string; action: string }) { return <MotionReveal className="mt-7"><section className="empty-illustration surface-card relative overflow-hidden rounded-[1.85rem] p-8 text-center sm:p-12"><span className="signal-orb mx-auto h-16 w-16"><Radio className="h-6 w-6" /></span><p className="mt-6 text-xl font-bold">{title}</p><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{detail}</p><div className="mx-auto mt-6 max-w-xs"><QueueRail position={3} peopleAhead={0} /></div><Button asChild className="mt-7"><Link href={href}>{action}<ArrowRight className="h-4 w-4" /></Link></Button></section></MotionReveal>; }
+function QueueEmpty({ title, detail, href, action }: { title: string; detail: string; href: string; action: string }) { return <MotionReveal className="mt-7"><section className="customer-queue-empty empty-illustration relative overflow-hidden rounded-[1.85rem] p-8 text-center sm:p-12"><span className="signal-orb mx-auto h-16 w-16"><Radio className="h-6 w-6" /></span><p className="mt-6 text-xl font-bold">{title}</p><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted-foreground">{detail}</p><div className="mx-auto mt-6 max-w-xs"><QueueRail position={3} peopleAhead={0} /></div><Button asChild className="mt-7"><Link href={href}>{action}<ArrowRight className="h-4 w-4" /></Link></Button></section></MotionReveal>; }
