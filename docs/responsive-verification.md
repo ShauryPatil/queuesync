@@ -67,3 +67,7 @@ The merchant workspace additionally renders a dedicated desktop-operations ribbo
 ## Merchant queue-stage colors
 
 Merchants can now configure waiting, called, in-service, completed, no-show, and cancelled colors in **Business settings**. Each six-digit hexadecimal value is validated, stored in the active tenant’s existing business settings record, and protected by the normal membership check. Invalid or absent saved values resolve to QueueSync’s accessible default palette. The configured waiting, called, and in-service colors are applied to live-queue status treatments, while the full panel was reviewed at 1440px and 375px with no clipping. The expanded regression suite contains 30 passing tests.
+
+## Named industry color presets
+
+Business settings now provides one-click, editable queue palettes for QueueSync, Salon & spa, Clinic & health, Food & counter, Fitness & studio, and Professional services. Choosing a preset only updates the local draft, so merchants can refine individual stage colors before saving the same tenant-scoped validated configuration flow. The preset gallery and custom stage controls were checked at 1440px and 375px; the regression suite contains 31 passing tests.
