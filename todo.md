@@ -62,3 +62,4 @@
 - [x] Apply the premium QueueSync visual system to the Electron merchant desktop shell and verify its dedicated operational presentation.
 - [x] Add tenant-scoped merchant-configurable queue-stage colors with safe defaults and apply them to live queue status states.
 - [x] Add named industry palette presets to merchant queue-stage color settings while retaining custom color editing and tenant-scoped persistence.
+- [x] Review and refine the merchant industry queue-palette setup experience while preserving custom colors and tenant-scoped saving.

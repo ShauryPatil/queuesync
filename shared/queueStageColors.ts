@@ -28,6 +28,12 @@ export const QUEUE_STAGE_COLOR_PRESETS: QueueStageColorPreset[] = [
   { id: "professional-services", name: "Professional services", description: "Quiet confidence for appointments", colors: { waiting: "#A16207", called: "#4338CA", in_service: "#334155", completed: "#15803D", no_show: "#B91C1C", cancelled: "#64748B" } },
 ];
 
+export function getRecommendedQueueStagePreset(category: string | null | undefined) {
+  const value = category?.toLowerCase().trim() ?? "";
+  const presetId = /salon|spa|beauty|barber/.test(value) ? "salon-spa" : /clinic|health|medical|dental|therapy/.test(value) ? "clinic-health" : /food|restaurant|cafe|counter|bakery/.test(value) ? "food-counter" : /fitness|gym|studio|wellness|yoga/.test(value) ? "fitness-studio" : /consult|professional|legal|finance|account/.test(value) ? "professional-services" : "queuesync";
+  return QUEUE_STAGE_COLOR_PRESETS.find(preset => preset.id === presetId) ?? QUEUE_STAGE_COLOR_PRESETS[0];
+}
+
 export const isValidQueueStageColor = (value: unknown): value is string => typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value);
 
 export const queueStageColorsEqual = (left: QueueStageColors, right: QueueStageColors) => QUEUE_STAGE_KEYS.every(stage => left[stage].toUpperCase() === right[stage].toUpperCase());

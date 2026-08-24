@@ -71,3 +71,7 @@ Merchants can now configure waiting, called, in-service, completed, no-show, and
 ## Named industry color presets
 
 Business settings now provides one-click, editable queue palettes for QueueSync, Salon & spa, Clinic & health, Food & counter, Fitness & studio, and Professional services. Choosing a preset only updates the local draft, so merchants can refine individual stage colors before saving the same tenant-scoped validated configuration flow. The preset gallery and custom stage controls were checked at 1440px and 375px; the regression suite contains 31 passing tests.
+
+## Category-aware palette recommendation
+
+The merchant color setup now interprets the real business category and suggests the most relevant preset before any colors are saved. For example, a Salon receives a clear `Salon & spa` recommendation with an explicit apply action; clinic, food, fitness, professional-service, and unclassified categories resolve to their matching or QueueSync fallback palettes. The recommendation remains editable, uses the existing tenant-scoped save path, and was reviewed at 1440px and 375px. The expanded regression suite contains 32 passing tests.
