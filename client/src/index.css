@@ -255,3 +255,38 @@ html[data-queuesync-desktop="merchant-operations"] .mesh-bg { background-image: 
 .queue-stage-color-scope .recharts-default-tooltip { border: 1px solid var(--border) !important; border-radius: .9rem !important; background: var(--chart-tooltip) !important; box-shadow: 0 1rem 2rem color-mix(in srgb, #061720 22%, transparent) !important; }
 .queue-stage-color-scope .recharts-default-tooltip .recharts-tooltip-label, .queue-stage-color-scope .recharts-default-tooltip .recharts-tooltip-item { color: var(--foreground) !important; font-family: "Manrope", ui-sans-serif, system-ui, sans-serif; font-weight: 700; }
 .queue-stage-color-scope .recharts-bar-rectangle path { filter: drop-shadow(0 5px 7px color-mix(in srgb, var(--signal-blue) 26%, transparent)); }
+
+/* Focused material polish: preserve the signal system while giving both themes firmer hierarchy. */
+:root:not(.dark) .surface-card { border-color: rgba(12, 102, 110, .14); background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(244,253,252,.96)); box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 .8rem 1.8rem rgba(9, 65, 74, .075); }
+:root:not(.dark) .queue-stage-color-scope, :root:not(.dark) .merchant-command { background: radial-gradient(circle at 86% 0%, rgba(77, 213, 194, .14) 0, transparent 24rem), linear-gradient(145deg, #f5fbfc 0%, #f8fcfd 58%, #edf9f7 100%); }
+:root:not(.dark) .merchant-command header, :root:not(.dark) .queue-stage-color-scope header { background: rgba(251, 254, 255, .92) !important; box-shadow: 0 1px 0 rgba(10, 82, 91, .08); }
+:root:not(.dark) .metric-command-card { border-color: rgba(14, 113, 119, .18); background: linear-gradient(150deg, #ffffff, #ecfbf8); box-shadow: 0 1px 0 rgba(255,255,255,.92) inset, 0 .9rem 2rem rgba(7, 70, 78, .1); }
+:root:not(.dark) .merchant-empty-state { border-color: rgba(13, 125, 129, .2) !important; background: radial-gradient(circle at 50% 28%, rgba(35, 185, 165, .12), transparent 10rem), linear-gradient(145deg, #f9fffe, #e7f7f4) !important; }
+:root:not(.dark) .merchant-live-queue-row { border-color: rgba(13, 125, 129, .2) !important; background: linear-gradient(110deg, #fff, #eaf9f7) !important; box-shadow: 0 .85rem 1.8rem rgba(8, 69, 77, .09); }
+
+.closing-signal a[href="/merchant"] { background: #edfffb !important; color: #063b42 !important; border: 1px solid rgba(222,255,250,.9) !important; font-weight: 800 !important; box-shadow: 0 .65rem 1.4rem rgba(0,0,0,.18); }
+.closing-signal a[href="/merchant"]:hover { background: #ffffff !important; color: #042f36 !important; }
+.closing-signal a[href="/explore"] { border-color: rgba(220,255,249,.56) !important; font-weight: 800 !important; }
+.brand-canvas .surface-card { backdrop-filter: blur(12px); }
+.journey-node, .business-record { transition: transform 180ms cubic-bezier(.23,1,.32,1), box-shadow 180ms cubic-bezier(.23,1,.32,1), border-color 180ms cubic-bezier(.23,1,.32,1); }
+.journey-node:hover, .business-record:hover { border-color: color-mix(in oklch, var(--primary) 42%, var(--border)); box-shadow: 0 1.2rem 2.5rem rgba(5, 72, 81, .13); }
+
+.dark .surface-card { border-color: rgba(138, 246, 223, .14); background: linear-gradient(145deg, rgba(16, 40, 49, .96), rgba(11, 34, 43, .98)); box-shadow: 0 1px 0 rgba(255,255,255,.025) inset, 0 1rem 2.2rem rgba(0,0,0,.26); }
+.dark .queue-stage-color-scope main .surface-card { border-color: rgba(138,246,222,.2); background: linear-gradient(145deg, #102d35, #0c3740); box-shadow: 0 1px 0 rgba(255,255,255,.025) inset, 0 1.1rem 2.4rem rgba(0,0,0,.25); }
+.dark .metric-command-card { background: linear-gradient(145deg, #11313a, #0d4249); box-shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 1.1rem 2.4rem rgba(0,0,0,.28); }
+.dark .merchant-empty-state { background: radial-gradient(circle at 50% 30%, rgba(74,225,201,.14), transparent 11rem), linear-gradient(145deg, #12313a, #0c3c43) !important; }
+.dark .field-polish, .dark select.field-polish { background-color: rgba(8, 27, 35, .74) !important; }
+.dark .queue-stage-color-scope .recharts-cartesian-axis-tick-value { fill: rgba(221, 249, 245, .72) !important; }
+.dark .queue-stage-color-scope .recharts-cartesian-grid line { stroke: rgba(126, 230, 210, .14) !important; }
+
+:root:not(.dark) .customer-event-business .business-hero-record { color: #effffc; border-color: rgba(136, 250, 229, .25); background: radial-gradient(circle at 86% 22%, rgba(97, 240, 209, .3) 0, transparent 12rem), linear-gradient(135deg, #082738, #0d5b64); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 1.7rem 3.5rem rgba(5, 66, 73, .2); }
+:root:not(.dark) .customer-event-business .business-hero-record .text-muted-foreground { color: rgba(232,255,251,.76); }
+:root:not(.dark) .customer-event-business .business-hero-record .text-primary { color: #8ff6df; }
+:root:not(.dark) .customer-event-business .business-hero-record .bg-secondary\/60 { background: rgba(255,255,255,.1); }
+:root:not(.dark) .business-event-record main > div > section > div > div:first-child { color: #effffc; border-color: rgba(136, 250, 229, .25); background: radial-gradient(circle at 86% 22%, rgba(97, 240, 209, .3) 0, transparent 12rem), linear-gradient(135deg, #082738, #0d5b64); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 1.7rem 3.5rem rgba(5, 66, 73, .2); }
+:root:not(.dark) .business-event-record main > div > section > div > div:first-child .text-muted-foreground { color: rgba(232,255,251,.76); }
+:root:not(.dark) .business-event-record main > div > section > div > div:first-child .text-primary { color: #8ff6df; }
+:root:not(.dark) .business-event-record main > div > section > div > div:first-child .bg-secondary\/60 { background: rgba(255,255,255,.1); }
+:root:not(.dark) .customer-event-business aside > section:last-child { color: #eafff9; border-color: rgba(132,249,226,.2); background: radial-gradient(circle at 84% 10%, rgba(65, 234, 196, .21), transparent 10rem), linear-gradient(145deg, #082a39, #0b5960); box-shadow: 0 1.2rem 2.4rem rgba(5,66,73,.16); }
+:root:not(.dark) .customer-event-business aside > section:last-child .text-muted-foreground { color: rgba(235,255,251,.76); }
+:root:not(.dark) .customer-event-business aside > section:last-child .signal-orb { background: rgba(143,250,229,.14); color: #9ff8e7; }

@@ -20,5 +20,7 @@ describe("QueueSync theme consistency", () => {
     expect(styles).toContain("--chart-tooltip");
     expect(styles).toContain(".recharts-cartesian-axis-tick-value");
     expect(styles).toContain(".recharts-default-tooltip");
+    expect(styles).toContain(":root:not(.dark) .business-event-record main > div > section > div > div:first-child");
+    expect(styles).toContain(":root:not(.dark) .customer-event-business aside > section:last-child");
   });
 });

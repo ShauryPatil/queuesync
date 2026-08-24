@@ -77,3 +77,8 @@
 - [x] Verify light and dark themes on customer account, merchant overview, merchant analytics, and merchant queue at desktop and mobile widths.
 - [x] Re-run QueueSync type and regression validation after final chart and route theme repairs.
 - [x] Capture final 1440px light and dark merchant overview and live-queue verification after the chart-theme repair.
+- [x] Apply a focused visual polish pass to both QueueSync themes, addressing remaining typography, spacing, contrast, surface-depth, and control-state inconsistencies across core routes.
+- [x] Resolve the stale ExperienceSurface module-resolution warning and confirm clean QueueSync development service behavior.
+- [x] Re-verify customer and merchant live queues in light and dark themes at desktop and mobile widths after the final polish fixes.
+- [x] Re-run QueueSync type and regression validation after the runtime and final live-queue verification work.
+- [x] Run final QueueSync type and regression validation after the restarted live-queue service verification.
