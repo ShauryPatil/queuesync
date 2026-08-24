@@ -72,3 +72,8 @@
 - [x] Verify BusinessDetails, LiveQueue, customer account, merchant overview, and merchant queue at desktop and mobile widths after the concrete markup work.
 - [x] Add and style an explicit command-center marker on merchant live-queue row elements.
 - [x] Re-verify customer and merchant visual routes at desktop and mobile widths after the live-queue row marker update.
+- [x] Repair QueueSync light and dark theme consistency across public, customer, and merchant surfaces, including contrast, overlays, cards, charts, and navigation states.
+- [x] Apply chart-specific light and dark theme styling for merchant analytics axes, labels, tooltips, and data surfaces.
+- [x] Verify light and dark themes on customer account, merchant overview, merchant analytics, and merchant queue at desktop and mobile widths.
+- [x] Re-run QueueSync type and regression validation after final chart and route theme repairs.
+- [x] Capture final 1440px light and dark merchant overview and live-queue verification after the chart-theme repair.
