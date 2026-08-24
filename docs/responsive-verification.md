@@ -103,3 +103,7 @@ The development service was restarted after confirming the shared ExperienceSurf
 ## Dark-only experience
 
 QueueSync now enforces its existing dark visual system across every route. The application ignores former `theme=light` URL preferences, clears saved theme preferences, removes customer navigation mode switches, and uses dark toast treatment. The original dark materials and hierarchy were preserved rather than restyled. Public, business-detail, customer queue, and merchant overview were reviewed at 1440px and 375px with former light-mode URL parameters; all render in the same dark-only system. The regression suite contains 36 passing tests.
+
+## Real-data service workflow
+
+The merchant service catalog, resource-assignment controls, and service-specific slot publisher were reviewed at 1440px and 375px. The current business has no persisted service records, so the page correctly renders its intentional empty catalog and disabled dependent controls instead of fabricating a demonstration offering. The customer business and live-queue screens likewise retain truthful empty states for unavailable slots and absent active queue context. The final regression suite contains 20 passing test files and 39 passing tests, including service creation, resource assignment validation, service-specific slot persistence, booking-slot validation, queue uniqueness, and existing real-time workflow coverage.

@@ -48,6 +48,19 @@ export const businessMembers = mysqlTable("businessMembers", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, table => [unique("business_member_unique").on(table.businessId, table.userId), index("member_user_idx").on(table.userId)]);
 
+export const services = mysqlTable("services", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  businessId: varchar("businessId", { length: 36 }).notNull().references(() => businesses.id),
+  name: varchar("name", { length: 160 }).notNull(),
+  description: varchar("description", { length: 600 }),
+  durationMinutes: int("durationMinutes").default(30).notNull(),
+  capacity: int("capacity").default(1).notNull(),
+  priceCents: int("priceCents"),
+  status: mysqlEnum("status", ["active", "inactive"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [index("service_business_status_idx").on(table.businessId, table.status), unique("service_business_name_unique").on(table.businessId, table.name)]);
+
 export const resources = mysqlTable("resources", {
   id: varchar("id", { length: 36 }).primaryKey(),
   businessId: varchar("businessId", { length: 36 }).notNull().references(() => businesses.id),
@@ -61,6 +74,14 @@ export const resources = mysqlTable("resources", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 }, table => [index("resource_business_idx").on(table.businessId), unique("resource_business_name_unique").on(table.businessId, table.name)]);
+
+export const resourceServices = mysqlTable("resourceServices", {
+  id: int("id").autoincrement().primaryKey(),
+  resourceId: varchar("resourceId", { length: 36 }).notNull().references(() => resources.id),
+  serviceId: varchar("serviceId", { length: 36 }).notNull().references(() => services.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [unique("resource_service_unique").on(table.resourceId, table.serviceId), index("resource_service_service_idx").on(table.serviceId)]);
 
 export const resourceSchedules = mysqlTable("resourceSchedules", {
   id: int("id").autoincrement().primaryKey(),
@@ -78,19 +99,21 @@ export const slots = mysqlTable("slots", {
   id: varchar("id", { length: 36 }).primaryKey(),
   businessId: varchar("businessId", { length: 36 }).notNull().references(() => businesses.id),
   resourceId: varchar("resourceId", { length: 36 }).notNull().references(() => resources.id),
+  serviceId: varchar("serviceId", { length: 36 }).references(() => services.id),
   startsAt: timestamp("startsAt").notNull(),
   endsAt: timestamp("endsAt").notNull(),
   capacity: int("capacity").default(1).notNull(),
   status: mysqlEnum("status", ["available", "blocked", "closed"]).default("available").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, table => [unique("slot_resource_window_unique").on(table.resourceId, table.startsAt, table.endsAt), index("slot_business_time_idx").on(table.businessId, table.startsAt)]);
+}, table => [unique("slot_resource_window_unique").on(table.resourceId, table.startsAt, table.endsAt), index("slot_business_time_idx").on(table.businessId, table.startsAt), index("slot_service_idx").on(table.serviceId)]);
 
 export const bookings = mysqlTable("bookings", {
   id: varchar("id", { length: 36 }).primaryKey(),
   businessId: varchar("businessId", { length: 36 }).notNull().references(() => businesses.id),
   customerId: int("customerId").notNull().references(() => users.id),
   resourceId: varchar("resourceId", { length: 36 }).notNull().references(() => resources.id),
+  serviceId: varchar("serviceId", { length: 36 }).references(() => services.id),
   slotId: varchar("slotId", { length: 36 }).references(() => slots.id),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled", "completed", "no_show"]).default("confirmed").notNull(),
   startsAt: timestamp("startsAt").notNull(),
@@ -104,14 +127,16 @@ export const bookings = mysqlTable("bookings", {
   notes: varchar("notes", { length: 800 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, table => [index("booking_business_time_idx").on(table.businessId, table.startsAt), index("booking_customer_idx").on(table.customerId, table.startsAt), index("booking_resource_time_idx").on(table.resourceId, table.startsAt)]);
+}, table => [index("booking_business_time_idx").on(table.businessId, table.startsAt), index("booking_customer_idx").on(table.customerId, table.startsAt), index("booking_resource_time_idx").on(table.resourceId, table.startsAt), index("booking_service_idx").on(table.serviceId)]);
 
 export const queueEntries = mysqlTable("queueEntries", {
   id: varchar("id", { length: 36 }).primaryKey(),
   businessId: varchar("businessId", { length: 36 }).notNull().references(() => businesses.id),
   customerId: int("customerId").notNull().references(() => users.id),
   resourceId: varchar("resourceId", { length: 36 }).references(() => resources.id),
+  serviceId: varchar("serviceId", { length: 36 }).references(() => services.id),
   bookingId: varchar("bookingId", { length: 36 }).references(() => bookings.id),
+  activeKey: varchar("activeKey", { length: 80 }),
   status: mysqlEnum("status", ["waiting", "called", "in_service", "completed", "no_show", "cancelled"]).default("waiting").notNull(),
   joinedAt: timestamp("joinedAt").defaultNow().notNull(),
   calledAt: timestamp("calledAt"),
@@ -124,20 +149,21 @@ export const queueEntries = mysqlTable("queueEntries", {
   notes: varchar("notes", { length: 800 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, table => [index("queue_business_status_idx").on(table.businessId, table.status, table.joinedAt), index("queue_customer_idx").on(table.customerId, table.joinedAt), index("queue_resource_idx").on(table.resourceId, table.status)]);
+}, table => [index("queue_business_status_idx").on(table.businessId, table.status, table.joinedAt), index("queue_customer_idx").on(table.customerId, table.joinedAt), index("queue_resource_idx").on(table.resourceId, table.status), index("queue_service_idx").on(table.serviceId, table.status), unique("queue_active_customer_unique").on(table.activeKey)]);
 
 export const serviceSessions = mysqlTable("serviceSessions", {
   id: varchar("id", { length: 36 }).primaryKey(),
   businessId: varchar("businessId", { length: 36 }).notNull().references(() => businesses.id),
   queueEntryId: varchar("queueEntryId", { length: 36 }).notNull().unique().references(() => queueEntries.id),
   resourceId: varchar("resourceId", { length: 36 }).notNull().references(() => resources.id),
+  serviceId: varchar("serviceId", { length: 36 }).references(() => services.id),
   customerId: int("customerId").notNull().references(() => users.id),
   startedAt: timestamp("startedAt").notNull(),
   completedAt: timestamp("completedAt"),
   durationMinutes: int("durationMinutes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-}, table => [index("session_business_time_idx").on(table.businessId, table.startedAt), index("session_resource_idx").on(table.resourceId, table.startedAt)]);
+}, table => [index("session_business_time_idx").on(table.businessId, table.startedAt), index("session_resource_idx").on(table.resourceId, table.startedAt), index("session_service_idx").on(table.serviceId, table.startedAt)]);
 
 export const eventLogs = mysqlTable("eventLogs", {
   id: varchar("id", { length: 36 }).primaryKey(),
@@ -168,7 +194,9 @@ export type InsertUser = typeof users.$inferInsert;
 export type Profile = typeof profiles.$inferSelect;
 export type Business = typeof businesses.$inferSelect;
 export type BusinessMember = typeof businessMembers.$inferSelect;
+export type Service = typeof services.$inferSelect;
 export type Resource = typeof resources.$inferSelect;
+export type ResourceService = typeof resourceServices.$inferSelect;
 export type ResourceSchedule = typeof resourceSchedules.$inferSelect;
 export type Slot = typeof slots.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;

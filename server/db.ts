@@ -1,4 +1,4 @@
-import { and, asc, avg, count, desc, eq, gte, inArray, lt, lte, sql } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, gte, inArray, lt, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { nanoid } from "nanoid";
 import {
@@ -11,7 +11,9 @@ import {
   queueEntries,
   resources,
   resourceSchedules,
+  resourceServices,
   serviceSessions,
+  services,
   slots,
   users,
   type InsertUser,
@@ -124,14 +126,64 @@ export async function listBusinessResources(businessId: string, includePrivate =
   return db.select().from(resources).where(includePrivate ? eq(resources.businessId, businessId) : and(eq(resources.businessId, businessId), eq(resources.isPublic, "yes"))).orderBy(asc(resources.name));
 }
 
+export async function listBusinessServices(businessId: string, includeInactive = false) {
+  const db = await requireDb();
+  return db.select().from(services).where(includeInactive ? eq(services.businessId, businessId) : and(eq(services.businessId, businessId), eq(services.status, "active"))).orderBy(asc(services.name));
+}
+
+export async function getBusinessService(businessId: string, serviceId: string, includeInactive = false) {
+  const db = await requireDb();
+  const conditions = [eq(services.id, serviceId), eq(services.businessId, businessId)];
+  if (!includeInactive) conditions.push(eq(services.status, "active"));
+  return (await db.select().from(services).where(and(...conditions)).limit(1))[0];
+}
+
+export async function listResourceServiceLinks(businessId: string) {
+  const db = await requireDb();
+  return db.select({ link: resourceServices, resource: resources, service: services }).from(resourceServices).innerJoin(resources, eq(resources.id, resourceServices.resourceId)).innerJoin(services, eq(services.id, resourceServices.serviceId)).where(eq(resources.businessId, businessId)).orderBy(asc(services.name), asc(resources.name));
+}
+
+export async function isResourceAssignedToService(resourceId: string, serviceId: string) {
+  const db = await requireDb();
+  return Boolean((await db.select({ id: resourceServices.id }).from(resourceServices).where(and(eq(resourceServices.resourceId, resourceId), eq(resourceServices.serviceId, serviceId))).limit(1))[0]);
+}
+
+export async function createService(input: { businessId: string; name: string; description?: string; durationMinutes: number; capacity: number; priceCents?: number }) {
+  const db = await requireDb();
+  const serviceId = nanoid(20);
+  await db.insert(services).values({ id: serviceId, ...input, status: "active" });
+  return (await db.select().from(services).where(eq(services.id, serviceId)).limit(1))[0];
+}
+
+export async function updateService(serviceId: string, changes: Partial<{ name: string; description: string; durationMinutes: number; capacity: number; priceCents: number | null; status: "active" | "inactive" }>) {
+  const db = await requireDb();
+  await db.update(services).set(changes).where(eq(services.id, serviceId));
+  return (await db.select().from(services).where(eq(services.id, serviceId)).limit(1))[0];
+}
+
+export async function assignServiceToResource(resourceId: string, serviceId: string) {
+  const db = await requireDb();
+  await db.insert(resourceServices).values({ resourceId, serviceId }).onDuplicateKeyUpdate({ set: { updatedAt: new Date() } });
+  return (await db.select().from(resourceServices).where(and(eq(resourceServices.resourceId, resourceId), eq(resourceServices.serviceId, serviceId))).limit(1))[0];
+}
+
 export async function listBusinessSchedules(businessId: string) {
   const db = await requireDb();
   return db.select().from(resourceSchedules).where(eq(resourceSchedules.businessId, businessId)).orderBy(asc(resourceSchedules.dayOfWeek));
 }
 
-export async function listSlots(businessId: string, from: Date, to: Date) {
+export async function isBusinessOpenNow(businessId: string) {
+  const business = await getBusinessById(businessId);
+  if (!business) return false;
+  const schedules = await listBusinessSchedules(businessId);
+  return schedules.some(schedule => scheduleIsOpenNow({ ...schedule, timezone: business.timezone }));
+}
+
+export async function listSlots(businessId: string, from: Date, to: Date, serviceId?: string) {
   const db = await requireDb();
-  return db.select({ slot: slots, resource: resources }).from(slots).innerJoin(resources, eq(resources.id, slots.resourceId)).where(and(eq(slots.businessId, businessId), gte(slots.startsAt, from), lte(slots.endsAt, to), eq(slots.status, "available"))).orderBy(asc(slots.startsAt));
+  const conditions = [eq(slots.businessId, businessId), gte(slots.startsAt, from), lte(slots.endsAt, to), eq(slots.status, "available")];
+  if (serviceId) conditions.push(eq(slots.serviceId, serviceId));
+  return db.select({ slot: slots, resource: resources, service: services }).from(slots).innerJoin(resources, eq(resources.id, slots.resourceId)).leftJoin(services, eq(services.id, slots.serviceId)).where(and(...conditions)).orderBy(asc(slots.startsAt));
 }
 
 export async function createBusiness(input: { ownerId: number; name: string; slug: string; category: string; description?: string; address?: string; area?: string; phone?: string; timezone: string; defaultServiceDurationMinutes: number }) {
@@ -170,15 +222,34 @@ export async function updateResource(resourceId: string, changes: Partial<{ name
   return (await db.select().from(resources).where(eq(resources.id, resourceId)).limit(1))[0];
 }
 
+export async function reserveAvailableResource(resourceId: string) {
+  const db = await requireDb();
+  const result = await db.update(resources).set({ status: "busy" }).where(and(eq(resources.id, resourceId), eq(resources.status, "available")));
+  const affectedRows = Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0);
+  if (!affectedRows) return undefined;
+  return (await db.select().from(resources).where(eq(resources.id, resourceId)).limit(1))[0];
+}
+
+export async function releaseResource(resourceId: string) {
+  const db = await requireDb();
+  await db.update(resources).set({ status: "available" }).where(and(eq(resources.id, resourceId), eq(resources.status, "busy")));
+  return (await db.select().from(resources).where(eq(resources.id, resourceId)).limit(1))[0];
+}
+
 export async function createSchedule(input: { businessId: string; resourceId?: string; dayOfWeek: number; opensAt: string; closesAt: string; isOpen: "yes" | "no" }) {
   const db = await requireDb();
   await db.insert(resourceSchedules).values(input);
 }
 
-export async function createSlot(input: { businessId: string; resourceId: string; startsAt: Date; endsAt: Date; capacity: number; status: "available" | "blocked" | "closed" }) {
+export async function createSlot(input: { businessId: string; resourceId: string; serviceId?: string; startsAt: Date; endsAt: Date; capacity: number; status: "available" | "blocked" | "closed" }) {
   const db = await requireDb();
   const slotId = nanoid(20);
   await db.insert(slots).values({ id: slotId, ...input });
+  return (await db.select().from(slots).where(eq(slots.id, slotId)).limit(1))[0];
+}
+
+export async function getSlot(slotId: string) {
+  const db = await requireDb();
   return (await db.select().from(slots).where(eq(slots.id, slotId)).limit(1))[0];
 }
 
@@ -190,12 +261,17 @@ export async function hasBookingConflict(input: { resourceId: string; startsAt: 
   return conflicting.length > 0;
 }
 
-export async function createBooking(input: { businessId: string; customerId: number; resourceId: string; slotId?: string; startsAt: Date; endsAt: Date; notes?: string }) {
+export async function createBooking(input: { businessId: string; customerId: number; resourceId: string; serviceId?: string; slotId?: string; startsAt: Date; endsAt: Date; notes?: string }) {
   const db = await requireDb();
   const bookingId = nanoid(20);
   const now = new Date();
   await db.insert(bookings).values({ id: bookingId, ...input, status: "confirmed", bookingConfirmedAt: now });
   return (await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1))[0];
+}
+
+export async function getCustomerBooking(bookingId: string, customerId: number) {
+  const db = await requireDb();
+  return (await db.select().from(bookings).where(and(eq(bookings.id, bookingId), eq(bookings.customerId, customerId))).limit(1))[0];
 }
 
 export async function listCustomerBookings(customerId: number) {
@@ -227,25 +303,38 @@ export async function getActiveCustomerQueue(businessId: string, customerId: num
   return (await db.select().from(queueEntries).where(and(eq(queueEntries.businessId, businessId), eq(queueEntries.customerId, customerId), inArray(queueEntries.status, ["waiting", "called", "in_service"]))).orderBy(desc(queueEntries.joinedAt)).limit(1))[0];
 }
 
-export async function createQueueEntry(input: { businessId: string; customerId: number; resourceId?: string; bookingId?: string; notes?: string }) {
+export async function getLatestCustomerQueue(businessId: string, customerId: number) {
+  const db = await requireDb();
+  return (await db.select().from(queueEntries).where(and(eq(queueEntries.businessId, businessId), eq(queueEntries.customerId, customerId))).orderBy(desc(queueEntries.joinedAt), desc(queueEntries.id)).limit(1))[0];
+}
+
+export async function createQueueEntry(input: { businessId: string; customerId: number; resourceId?: string; serviceId?: string; bookingId?: string; notes?: string }) {
   const db = await requireDb();
   const queueEntryId = nanoid(20);
-  await db.insert(queueEntries).values({ id: queueEntryId, ...input, status: "waiting" });
+  await db.insert(queueEntries).values({ id: queueEntryId, ...input, activeKey: `${input.businessId}:${input.customerId}`, status: "waiting" });
   return getQueueEntry(queueEntryId);
 }
 
 export async function listLiveQueue(businessId: string) {
   const db = await requireDb();
-  return db.select({ entry: queueEntries, customer: users, resource: resources }).from(queueEntries).innerJoin(users, eq(users.id, queueEntries.customerId)).leftJoin(resources, eq(resources.id, queueEntries.resourceId)).where(and(eq(queueEntries.businessId, businessId), inArray(queueEntries.status, ["waiting", "called", "in_service"]))).orderBy(asc(queueEntries.joinedAt));
+  return db.select({ entry: queueEntries, customer: users, resource: resources, service: services }).from(queueEntries).innerJoin(users, eq(users.id, queueEntries.customerId)).leftJoin(resources, eq(resources.id, queueEntries.resourceId)).leftJoin(services, eq(services.id, queueEntries.serviceId)).where(and(eq(queueEntries.businessId, businessId), inArray(queueEntries.status, ["waiting", "called", "in_service"]))).orderBy(asc(queueEntries.joinedAt), asc(queueEntries.id));
 }
 
-export async function updateQueueEntry(queueEntryId: string, changes: Partial<{ status: "waiting" | "called" | "in_service" | "completed" | "no_show" | "cancelled"; resourceId: string; calledAt: Date; startedAt: Date; completedAt: Date; noShowAt: Date; cancelledAt: Date; estimatedWaitMinutes: number; estimationBasis: string }>) {
+export async function updateQueueEntry(queueEntryId: string, changes: Partial<{ status: "waiting" | "called" | "in_service" | "completed" | "no_show" | "cancelled"; resourceId: string; activeKey: string | null; calledAt: Date; startedAt: Date; completedAt: Date; noShowAt: Date; cancelledAt: Date; estimatedWaitMinutes: number; estimationBasis: string }>) {
   const db = await requireDb();
   await db.update(queueEntries).set(changes).where(eq(queueEntries.id, queueEntryId));
   return getQueueEntry(queueEntryId);
 }
 
-export async function createServiceSession(input: { businessId: string; queueEntryId: string; resourceId: string; customerId: number; startedAt: Date }) {
+export async function transitionQueueEntry(queueEntryId: string, from: "waiting" | "called" | "in_service", changes: Partial<{ status: "called" | "in_service" | "completed" | "no_show" | "cancelled"; resourceId: string; activeKey: string | null; calledAt: Date; startedAt: Date; completedAt: Date; noShowAt: Date; cancelledAt: Date }>) {
+  const db = await requireDb();
+  const result = await db.update(queueEntries).set(changes).where(and(eq(queueEntries.id, queueEntryId), eq(queueEntries.status, from)));
+  const affectedRows = Number((result as unknown as { affectedRows?: number }).affectedRows ?? 0);
+  if (!affectedRows) return undefined;
+  return getQueueEntry(queueEntryId);
+}
+
+export async function createServiceSession(input: { businessId: string; queueEntryId: string; resourceId: string; serviceId?: string; customerId: number; startedAt: Date }) {
   const db = await requireDb();
   const sessionId = nanoid(20);
   await db.insert(serviceSessions).values({ id: sessionId, ...input });
@@ -269,9 +358,10 @@ export async function getHistoricalAverageDuration(businessId: string, resourceI
   return { averageMinutes: row?.average ? Math.round(Number(row.average)) : null, samples: Number(row?.samples ?? 0) };
 }
 
-export async function getQueueEntriesAhead(businessId: string, joinedAt: Date, resourceId?: string) {
+export async function getQueueEntriesAhead(businessId: string, joinedAt: Date, queueEntryId: string, resourceId?: string) {
   const db = await requireDb();
-  const conditions = [eq(queueEntries.businessId, businessId), lt(queueEntries.joinedAt, joinedAt), inArray(queueEntries.status, ["waiting", "called", "in_service"])];
+  const joinedEarlier = or(lt(queueEntries.joinedAt, joinedAt), and(eq(queueEntries.joinedAt, joinedAt), lt(queueEntries.id, queueEntryId)));
+  const conditions = [eq(queueEntries.businessId, businessId), joinedEarlier, inArray(queueEntries.status, ["waiting", "called", "in_service"])];
   if (resourceId) conditions.push(sql`(${queueEntries.resourceId} = ${resourceId} OR ${queueEntries.resourceId} IS NULL)`);
   return db.select().from(queueEntries).where(and(...conditions)).orderBy(asc(queueEntries.joinedAt));
 }

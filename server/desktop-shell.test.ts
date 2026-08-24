@@ -11,6 +11,7 @@ describe("QueueSync merchant desktop shell", () => {
     expect(desktopMain).toContain("installApplicationMenu");
     expect(desktopMain).toContain("Refresh workspace");
     expect(desktopMain).toContain("Open customer view");
+    expect(desktopMain).toContain('backgroundColor: "#07161c"');
     expect(desktopPreload).toContain('workspace: "merchant-operations"');
     expect(desktopPreload).toContain('queuesyncDesktop = "merchant-operations"');
   });

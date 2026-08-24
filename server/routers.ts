@@ -32,6 +32,14 @@ const resourceInput = z.object({
   isPublic: z.enum(["yes", "no"]).default("yes"),
 });
 
+const serviceInput = z.object({
+  name: z.string().min(2).max(160),
+  description: z.string().max(600).optional(),
+  durationMinutes: z.number().int().min(5).max(480).default(30),
+  capacity: z.number().int().min(1).max(100).default(1),
+  priceCents: z.number().int().min(0).max(10_000_000).optional(),
+});
+
 const queueStageColorsInput = z.object(Object.fromEntries(QUEUE_STAGE_KEYS.map(stage => [stage, z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a six-digit hexadecimal color.")])) as Record<(typeof QUEUE_STAGE_KEYS)[number], z.ZodString>);
 
 function event<T extends Record<string, unknown>>(name: RealtimeEventName, businessId: string, payload: T) {
@@ -51,6 +59,12 @@ async function getOwnedResource(businessId: string, resourceId: string) {
   return resource;
 }
 
+async function getOwnedService(businessId: string, serviceId: string, includeInactive = false) {
+  const service = await db.getBusinessService(businessId, serviceId, includeInactive);
+  if (!service) throw new TRPCError({ code: "NOT_FOUND", message: "Service not found in this business." });
+  return service;
+}
+
 async function publishNotification(input: { userId: number; businessId: string; type: string; title: string; message: string; metadata?: Record<string, unknown> }) {
   const notification = await db.createNotification(input);
   emitUserEvent(input.userId, event("notification:created", input.businessId, { notification }));
@@ -67,14 +81,15 @@ async function getQueueSnapshot(queueEntryId: string) {
   if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "Queue entry not found." });
   const business = await db.getBusinessById(entry.businessId);
   if (!business) throw new TRPCError({ code: "NOT_FOUND", message: "Business not found." });
-  const peopleAhead = await db.getQueueEntriesAhead(entry.businessId, entry.joinedAt, entry.resourceId ?? undefined);
+  const service = entry.serviceId ? await db.getBusinessService(entry.businessId, entry.serviceId, true) : undefined;
+  const peopleAhead = await db.getQueueEntriesAhead(entry.businessId, entry.joinedAt, entry.id, entry.resourceId ?? undefined);
   const historical = await db.getHistoricalAverageDuration(entry.businessId, entry.resourceId ?? undefined);
   const eligibleResources = await db.listAvailableResources(entry.businessId, entry.resourceId ?? undefined);
   const activeServiceCount = peopleAhead.filter(item => item.status === "called" || item.status === "in_service").length;
   const estimatedWait = deriveWaitEstimate({ peopleAhead: peopleAhead.length, activeServiceCount, availableResourceCount: eligibleResources.length, historicalAverageMinutes: historical.averageMinutes, configuredDurationMinutes: eligibleResources[0]?.configuredServiceDurationMinutes ?? business.defaultServiceDurationMinutes });
   if (entry.status === "waiting" || entry.status === "called") await db.updateQueueEntry(entry.id, { estimatedWaitMinutes: estimatedWait.minutes ?? undefined, estimationBasis: estimatedWait.basis });
   const position = entry.status === "waiting" ? peopleAhead.filter(item => item.status === "waiting" || item.status === "called").length + 1 : null;
-  return { queueEntryId: entry.id, businessId: entry.businessId, status: entry.status, position, peopleAhead: peopleAhead.length, estimatedWait, resourceId: entry.resourceId, joinedAt: entry.joinedAt };
+  return { queueEntryId: entry.id, businessId: entry.businessId, status: entry.status, position, peopleAhead: peopleAhead.length, estimatedWait, resourceId: entry.resourceId, service: service ? { id: service.id, name: service.name } : null, joinedAt: entry.joinedAt, updatedAt: entry.updatedAt };
 }
 
 async function publishWaitTimeUpdates(businessId: string) {
@@ -105,8 +120,8 @@ export const appRouter = router({
     get: publicProcedure.input(z.object({ businessId: z.string() })).query(async ({ input }) => {
       const business = await db.getBusinessById(input.businessId);
       if (!business || business.isActive !== "active") throw new TRPCError({ code: "NOT_FOUND", message: "Business not found." });
-      const [resources, schedules] = await Promise.all([db.listBusinessResources(input.businessId), db.listBusinessSchedules(input.businessId)]);
-      return { business, resources, schedules };
+      const [resources, schedules, services, assignments] = await Promise.all([db.listBusinessResources(input.businessId), db.listBusinessSchedules(input.businessId), db.listBusinessServices(input.businessId), db.listResourceServiceLinks(input.businessId)]);
+      return { business, resources, schedules, services, assignments };
     }),
     create: protectedProcedure.input(businessInput).mutation(async ({ ctx, input }) => {
       const business = await db.createBusiness({ ownerId: ctx.user.id, ...input });
@@ -150,6 +165,37 @@ export const appRouter = router({
       return resource;
     }),
   }),
+  services: router({
+    list: protectedProcedure.input(z.object({ businessId: z.string() })).query(async ({ ctx, input }) => {
+      await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
+      const [serviceRows, assignments] = await Promise.all([db.listBusinessServices(input.businessId, true), db.listResourceServiceLinks(input.businessId)]);
+      return { services: serviceRows, assignments };
+    }),
+    create: protectedProcedure.input(z.object({ businessId: z.string(), service: serviceInput })).mutation(async ({ ctx, input }) => {
+      await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
+      const service = await db.createService({ businessId: input.businessId, ...input.service });
+      await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, eventType: "SERVICE_CREATED", metadata: { serviceId: service.id } });
+      emitMerchantEvent(event("resource:updated", input.businessId, { service }));
+      emitPublicBusinessEvent(event("resource:updated", input.businessId, { service }));
+      return service;
+    }),
+    update: protectedProcedure.input(z.object({ businessId: z.string(), serviceId: z.string(), changes: serviceInput.partial().extend({ status: z.enum(["active", "inactive"]).optional(), priceCents: z.number().int().min(0).max(10_000_000).nullable().optional() }) })).mutation(async ({ ctx, input }) => {
+      await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
+      await getOwnedService(input.businessId, input.serviceId, true);
+      const service = await db.updateService(input.serviceId, input.changes);
+      await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, eventType: "SERVICE_UPDATED", metadata: { serviceId: input.serviceId, status: service?.status } });
+      emitMerchantEvent(event("resource:updated", input.businessId, { service }));
+      emitPublicBusinessEvent(event("resource:updated", input.businessId, { service }));
+      return service;
+    }),
+    assignResource: protectedProcedure.input(z.object({ businessId: z.string(), serviceId: z.string(), resourceId: z.string() })).mutation(async ({ ctx, input }) => {
+      await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
+      await Promise.all([getOwnedService(input.businessId, input.serviceId, true), getOwnedResource(input.businessId, input.resourceId)]);
+      const assignment = await db.assignServiceToResource(input.resourceId, input.serviceId);
+      await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, resourceId: input.resourceId, eventType: "SERVICE_ASSIGNED_TO_RESOURCE", metadata: { serviceId: input.serviceId } });
+      return assignment;
+    }),
+  }),
   schedules: router({
     list: protectedProcedure.input(z.object({ businessId: z.string() })).query(async ({ ctx, input }) => {
       await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
@@ -157,17 +203,23 @@ export const appRouter = router({
     }),
     create: protectedProcedure.input(z.object({ businessId: z.string(), resourceId: z.string().optional(), dayOfWeek: z.number().int().min(0).max(6), opensAt: z.string().regex(/^\d{2}:\d{2}$/), closesAt: z.string().regex(/^\d{2}:\d{2}$/), isOpen: z.enum(["yes", "no"]).default("yes") })).mutation(async ({ ctx, input }) => {
       await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
-      if (input.resourceId) await getOwnedResource(input.businessId, input.resourceId);
+      if (input.resourceId) {
+        const resource = await getOwnedResource(input.businessId, input.resourceId);
+        if (resource.status !== "available") throw new TRPCError({ code: "CONFLICT", message: "The selected resource is not currently available for the live queue." });
+      }
       await db.createSchedule(input);
       await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, resourceId: input.resourceId, eventType: "SCHEDULE_CREATED" });
       return { success: true };
     }),
   }),
   slots: router({
-    listPublic: publicProcedure.input(z.object({ businessId: z.string(), from: z.coerce.date(), to: z.coerce.date() })).query(({ input }) => db.listSlots(input.businessId, input.from, input.to)),
-    create: protectedProcedure.input(z.object({ businessId: z.string(), resourceId: z.string(), startsAt: z.coerce.date(), endsAt: z.coerce.date(), capacity: z.number().int().min(1).max(100).default(1), status: z.enum(["available", "blocked", "closed"]).default("available") })).mutation(async ({ ctx, input }) => {
+    listPublic: publicProcedure.input(z.object({ businessId: z.string(), from: z.coerce.date(), to: z.coerce.date(), serviceId: z.string().optional() })).query(({ input }) => db.listSlots(input.businessId, input.from, input.to, input.serviceId)),
+    create: protectedProcedure.input(z.object({ businessId: z.string(), resourceId: z.string(), serviceId: z.string().optional(), startsAt: z.coerce.date(), endsAt: z.coerce.date(), capacity: z.number().int().min(1).max(100).default(1), status: z.enum(["available", "blocked", "closed"]).default("available") })).mutation(async ({ ctx, input }) => {
       await assertBusinessMember(ctx.user.id, ctx.user.role, input.businessId);
+      if (!input.serviceId) throw new TRPCError({ code: "BAD_REQUEST", message: "Create service-specific booking slots from Manage services so customer bookings retain their service context." });
       await getOwnedResource(input.businessId, input.resourceId);
+      await getOwnedService(input.businessId, input.serviceId);
+      if (!await db.isResourceAssignedToService(input.resourceId, input.serviceId)) throw new TRPCError({ code: "CONFLICT", message: "Assign this service to the selected resource before publishing a slot." });
       if (input.endsAt <= input.startsAt) throw new TRPCError({ code: "BAD_REQUEST", message: "Slot end time must be after its start time." });
       const slot = await db.createSlot(input);
       await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, resourceId: input.resourceId, eventType: "SLOT_CREATED", metadata: { slotId: slot.id } });
@@ -175,12 +227,19 @@ export const appRouter = router({
     }),
   }),
   bookings: router({
-    create: protectedProcedure.input(z.object({ businessId: z.string(), resourceId: z.string(), slotId: z.string().optional(), startsAt: z.coerce.date(), endsAt: z.coerce.date(), notes: z.string().max(800).optional() })).mutation(async ({ ctx, input }) => {
+    create: protectedProcedure.input(z.object({ businessId: z.string(), resourceId: z.string(), serviceId: z.string().optional(), slotId: z.string(), startsAt: z.coerce.date(), endsAt: z.coerce.date(), notes: z.string().max(800).optional() })).mutation(async ({ ctx, input }) => {
       const business = await db.getBusinessById(input.businessId);
       if (!business || business.isActive !== "active") throw new TRPCError({ code: "NOT_FOUND", message: "Business is not available for booking." });
       const resource = await getOwnedResource(input.businessId, input.resourceId);
       if (resource.status === "offline" || resource.status === "maintenance") throw new TRPCError({ code: "CONFLICT", message: "This resource is not currently bookable." });
       if (input.endsAt <= input.startsAt || input.startsAt <= new Date()) throw new TRPCError({ code: "BAD_REQUEST", message: "Choose a valid future time range." });
+      if (input.serviceId) {
+        await getOwnedService(input.businessId, input.serviceId);
+        if (!await db.isResourceAssignedToService(input.resourceId, input.serviceId)) throw new TRPCError({ code: "CONFLICT", message: "The selected resource cannot provide this service." });
+      }
+      const slot = await db.getSlot(input.slotId);
+      if (!slot || slot.businessId !== input.businessId || slot.resourceId !== input.resourceId || slot.status !== "available" || slot.startsAt.getTime() !== input.startsAt.getTime() || slot.endsAt.getTime() !== input.endsAt.getTime()) throw new TRPCError({ code: "CONFLICT", message: "This booking slot is no longer available. Please choose another time." });
+      if (slot.serviceId && slot.serviceId !== input.serviceId) throw new TRPCError({ code: "CONFLICT", message: "Choose a booking slot published for the selected service." });
       if (await db.hasBookingConflict(input)) throw new TRPCError({ code: "CONFLICT", message: "This time slot has just been booked. Please choose another available time." });
       const booking = await db.createBooking({ ...input, customerId: ctx.user.id });
       await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, resourceId: input.resourceId, bookingId: booking.id, eventType: "BOOKING_CREATED" });
@@ -205,13 +264,30 @@ export const appRouter = router({
     }),
   }),
   queue: router({
-    join: protectedProcedure.input(z.object({ businessId: z.string(), resourceId: z.string().optional(), bookingId: z.string().optional(), notes: z.string().max(800).optional() })).mutation(async ({ ctx, input }) => {
+    join: protectedProcedure.input(z.object({ businessId: z.string(), resourceId: z.string().optional(), serviceId: z.string().optional(), bookingId: z.string().optional(), notes: z.string().max(800).optional() })).mutation(async ({ ctx, input }) => {
       const business = await db.getBusinessById(input.businessId);
       if (!business || business.isActive !== "active") throw new TRPCError({ code: "NOT_FOUND", message: "Business is unavailable." });
-      if (input.resourceId) await getOwnedResource(input.businessId, input.resourceId);
+      if (!await db.isBusinessOpenNow(input.businessId)) throw new TRPCError({ code: "CONFLICT", message: "This business is currently closed to new queue entries." });
+      const booking = input.bookingId ? await db.getCustomerBooking(input.bookingId, ctx.user.id) : undefined;
+      if (input.bookingId && (!booking || booking.businessId !== input.businessId || booking.status !== "confirmed")) throw new TRPCError({ code: "NOT_FOUND", message: "A confirmed booking for this business is required." });
+      const resourceId = input.resourceId ?? booking?.resourceId ?? undefined;
+      const serviceId = input.serviceId ?? booking?.serviceId ?? undefined;
+      if (input.resourceId && booking && booking.resourceId !== input.resourceId) throw new TRPCError({ code: "CONFLICT", message: "The selected resource does not match this booking." });
+      if (input.serviceId && booking?.serviceId && booking.serviceId !== input.serviceId) throw new TRPCError({ code: "CONFLICT", message: "The selected service does not match this booking." });
+      if (resourceId) await getOwnedResource(input.businessId, resourceId);
+      if (serviceId) {
+        await getOwnedService(input.businessId, serviceId);
+        if (!resourceId || !await db.isResourceAssignedToService(resourceId, serviceId)) throw new TRPCError({ code: "CONFLICT", message: "Choose a resource that is configured for this service." });
+      }
       const existing = await db.getActiveCustomerQueue(input.businessId, ctx.user.id);
       if (existing) throw new TRPCError({ code: "CONFLICT", message: "You already have an active queue entry for this business." });
-      const queueEntry = await db.createQueueEntry({ ...input, customerId: ctx.user.id });
+      let queueEntry;
+      try {
+        queueEntry = await db.createQueueEntry({ businessId: input.businessId, resourceId, serviceId, bookingId: input.bookingId, notes: input.notes, customerId: ctx.user.id });
+      } catch (error) {
+        if ((error as { code?: string }).code === "ER_DUP_ENTRY") throw new TRPCError({ code: "CONFLICT", message: "You already have an active queue entry for this business." });
+        throw error;
+      }
       const snapshot = await getQueueSnapshot(queueEntry.id);
       await db.createEvent({ businessId: input.businessId, actorId: ctx.user.id, resourceId: input.resourceId, bookingId: input.bookingId, queueEntryId: queueEntry.id, eventType: "QUEUE_JOINED" });
       await publishNotification({ userId: ctx.user.id, businessId: input.businessId, type: "queue_joined", title: "You joined the queue", message: "Your live queue position is now available.", metadata: { queueEntryId: queueEntry.id } });
@@ -222,7 +298,7 @@ export const appRouter = router({
       return { queueEntry, snapshot };
     }),
     mine: protectedProcedure.input(z.object({ businessId: z.string() })).query(async ({ ctx, input }) => {
-      const entry = await db.getActiveCustomerQueue(input.businessId, ctx.user.id);
+      const entry = await db.getActiveCustomerQueue(input.businessId, ctx.user.id) ?? await db.getLatestCustomerQueue(input.businessId, ctx.user.id);
       return entry ? getQueueSnapshot(entry.id) : null;
     }),
     listLive: protectedProcedure.input(z.object({ businessId: z.string() })).query(async ({ ctx, input }) => {
@@ -233,7 +309,7 @@ export const appRouter = router({
       const entry = await db.getQueueEntry(input.queueEntryId);
       if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "Queue entry not found." });
       await assertBusinessMember(ctx.user.id, ctx.user.role, entry.businessId);
-      const destination = input.to as QueueStatus;
+      const destination = input.to;
       if (!canTransitionQueue(entry.status, destination)) throw new TRPCError({ code: "CONFLICT", message: `Cannot transition from ${entry.status} to ${destination}.` });
       const transition = transitionEvent(entry.status, destination)!;
       const assignedResourceId = input.resourceId ?? entry.resourceId;
@@ -241,14 +317,21 @@ export const appRouter = router({
       if (assignedResourceId) await getOwnedResource(entry.businessId, assignedResourceId);
       const now = new Date();
       const timestampChanges = destination === "called" ? { calledAt: now } : destination === "in_service" ? { startedAt: now } : destination === "completed" ? { completedAt: now } : destination === "no_show" ? { noShowAt: now } : { cancelledAt: now };
-      const queueEntry = await db.updateQueueEntry(entry.id, { status: destination, ...(assignedResourceId ? { resourceId: assignedResourceId } : {}), ...timestampChanges });
       if (destination === "in_service" && assignedResourceId) {
-        await db.createServiceSession({ businessId: entry.businessId, queueEntryId: entry.id, resourceId: assignedResourceId, customerId: entry.customerId, startedAt: now });
-        await db.updateResource(assignedResourceId, { status: "busy" });
+        const reservedResource = await db.reserveAvailableResource(assignedResourceId);
+        if (!reservedResource) throw new TRPCError({ code: "CONFLICT", message: "This resource was just assigned elsewhere. Choose another available resource." });
+      }
+      const queueEntry = await db.transitionQueueEntry(entry.id, entry.status as "waiting" | "called" | "in_service", { status: destination, ...(assignedResourceId ? { resourceId: assignedResourceId } : {}), ...(["completed", "no_show", "cancelled"].includes(destination) ? { activeKey: null } : {}), ...timestampChanges });
+      if (!queueEntry) {
+        if (destination === "in_service" && assignedResourceId) await db.releaseResource(assignedResourceId);
+        throw new TRPCError({ code: "CONFLICT", message: "This queue entry changed before the action could be completed. Refresh the live queue and try again." });
+      }
+      if (destination === "in_service" && assignedResourceId) {
+        await db.createServiceSession({ businessId: entry.businessId, queueEntryId: entry.id, resourceId: assignedResourceId, serviceId: entry.serviceId ?? undefined, customerId: entry.customerId, startedAt: now });
       }
       if (destination === "completed") {
         await db.completeServiceSession(entry.id, now);
-        if (assignedResourceId) await db.updateResource(assignedResourceId, { status: "available" });
+        if (assignedResourceId) await db.releaseResource(assignedResourceId);
       }
       await db.createEvent({ businessId: entry.businessId, actorId: ctx.user.id, resourceId: assignedResourceId ?? undefined, bookingId: entry.bookingId ?? undefined, queueEntryId: entry.id, eventType: transition.eventType });
       const snapshot = await getQueueSnapshot(entry.id);
@@ -259,6 +342,19 @@ export const appRouter = router({
       emitUserEvent(entry.customerId, event(eventName, entry.businessId, { queueEntry, snapshot }));
       await publishWaitTimeUpdates(entry.businessId);
       return { queueEntry, snapshot };
+    }),
+    cancelMine: protectedProcedure.input(z.object({ businessId: z.string() })).mutation(async ({ ctx, input }) => {
+      const entry = await db.getActiveCustomerQueue(input.businessId, ctx.user.id);
+      if (!entry) throw new TRPCError({ code: "NOT_FOUND", message: "You do not have an active queue entry for this business." });
+      if (entry.status !== "waiting" && entry.status !== "called") throw new TRPCError({ code: "CONFLICT", message: "A queue entry cannot be cancelled after service has started." });
+      const queueEntry = await db.transitionQueueEntry(entry.id, entry.status, { status: "cancelled", activeKey: null, cancelledAt: new Date() });
+      if (!queueEntry) throw new TRPCError({ code: "CONFLICT", message: "This queue entry changed before it could be cancelled. Please refresh and try again." });
+      await db.createEvent({ businessId: entry.businessId, actorId: ctx.user.id, resourceId: entry.resourceId ?? undefined, bookingId: entry.bookingId ?? undefined, queueEntryId: entry.id, eventType: "QUEUE_CANCELLED" });
+      await publishBusinessNotification({ businessId: entry.businessId, type: "queue_cancelled", title: "Customer left the live queue", message: "A customer cancelled their active queue entry.", metadata: { queueEntryId: entry.id } });
+      emitMerchantEvent(event("queue:cancelled", entry.businessId, { queueEntry, snapshot: null }));
+      emitUserEvent(ctx.user.id, event("queue:cancelled", entry.businessId, { queueEntry, snapshot: null }));
+      await publishWaitTimeUpdates(entry.businessId);
+      return { queueEntry };
     }),
   }),
   notifications: router({

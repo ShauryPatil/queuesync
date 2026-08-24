@@ -9,7 +9,7 @@ function createWindow() {
     height: 920,
     minWidth: 1024,
     minHeight: 680,
-    backgroundColor: "#eef8fa",
+    backgroundColor: "#07161c",
     title: "QueueSync — Merchant Operations",
     autoHideMenuBar: true,
     show: false,

@@ -5,6 +5,7 @@ const queueEntry = { id: "queue-1", businessId: "business-1", customerId: 11, re
 
 vi.mock("./db", () => ({
   getBusinessById: vi.fn(),
+  isBusinessOpenNow: vi.fn(),
   getActiveCustomerQueue: vi.fn(),
   createQueueEntry: vi.fn(),
   getQueueEntry: vi.fn(),
@@ -29,6 +30,7 @@ describe("QueueSync core queue workflow", () => {
   it("persists the queue join and validates a later merchant service transition", async () => {
     const resource = { id: "resource-1", businessId: "business-1", name: "Station 1", resourceType: "Station", description: null, capacity: 1, status: "available" as const, configuredServiceDurationMinutes: 30, isPublic: "yes" as const, createdAt: now, updatedAt: now };
     vi.mocked(db.getBusinessById).mockResolvedValue({ id: "business-1", ownerId: 2, name: "Real Business", slug: "real-business", category: "Salon", description: null, address: null, area: null, phone: null, timezone: "Asia/Kolkata", defaultServiceDurationMinutes: 30, settings: null, isActive: "active", createdAt: now, updatedAt: now });
+    vi.mocked(db.isBusinessOpenNow).mockResolvedValue(true);
     vi.mocked(db.listBusinessResources).mockResolvedValue([resource]);
     vi.mocked(db.getActiveCustomerQueue).mockResolvedValue(undefined);
     vi.mocked(db.createQueueEntry).mockResolvedValue(queueEntry);

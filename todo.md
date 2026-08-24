@@ -83,3 +83,9 @@
 - [x] Re-run QueueSync type and regression validation after the runtime and final live-queue verification work.
 - [x] Run final QueueSync type and regression validation after the restarted live-queue service verification.
 - [x] Remove light-mode switching and enforce QueueSync’s existing dark theme across the application without changing dark visual styling.
+- [x] Audit the implemented schema, roles, database-backed workflows, real-time events, and tests against the attached real-data end-to-end instruction set.
+- [x] Implement and validate any confirmed gaps in merchant setup, services, resources, bookings, queues, queue events, notifications, authorization, and analytics without introducing fabricated operational data.
+- [x] Execute and document a real-record customer-to-merchant queue lifecycle demonstration, including automatic updates, preserved history, and responsive route verification.
+- [x] Add service selection to merchant slot publishing and verify that service-specific slots persist and appear in the customer booking flow.
+- [ ] Run a real-record service-backed customer-to-merchant workflow through actual service setup, resource assignment, slot publishing, booking or queue join, merchant transitions, notifications, history, and analytics without inserting test data directly.
+- [ ] Add regression coverage for service-specific slot creation and the completed service-backed real-time lifecycle.

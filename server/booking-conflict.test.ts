@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("./db", () => ({
   getBusinessById: vi.fn(),
   listBusinessResources: vi.fn(),
+  getSlot: vi.fn(),
   hasBookingConflict: vi.fn(),
 }));
 
@@ -17,8 +18,11 @@ describe("QueueSync booking conflict validation", () => {
   it("rejects a conflicting booking before a record is created", async () => {
     vi.mocked(db.getBusinessById).mockResolvedValue({ id: "business-1", ownerId: 2, name: "Real Business", slug: "real-business", category: "Salon", description: null, address: null, area: null, phone: null, timezone: "Asia/Kolkata", defaultServiceDurationMinutes: 30, settings: null, isActive: "active", createdAt: now, updatedAt: now });
     vi.mocked(db.listBusinessResources).mockResolvedValue([{ id: "resource-1", businessId: "business-1", name: "Stylist 1", resourceType: "Stylist", description: null, capacity: 1, status: "available", configuredServiceDurationMinutes: 30, isPublic: "yes", createdAt: now, updatedAt: now }]);
+    const startsAt = new Date(Date.now() + 3600000);
+    const endsAt = new Date(Date.now() + 7200000);
+    vi.mocked(db.getSlot).mockResolvedValue({ id: "slot-1", businessId: "business-1", resourceId: "resource-1", serviceId: null, startsAt, endsAt, capacity: 1, status: "available", createdAt: now, updatedAt: now });
     vi.mocked(db.hasBookingConflict).mockResolvedValue(true);
     const caller = appRouter.createCaller(context);
-    await expect(caller.bookings.create({ businessId: "business-1", resourceId: "resource-1", startsAt: new Date(Date.now() + 3600000), endsAt: new Date(Date.now() + 7200000) })).rejects.toMatchObject({ code: "CONFLICT" });
+    await expect(caller.bookings.create({ businessId: "business-1", resourceId: "resource-1", slotId: "slot-1", startsAt, endsAt })).rejects.toMatchObject({ code: "CONFLICT" });
   });
 });
