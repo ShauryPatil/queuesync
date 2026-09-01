@@ -94,3 +94,4 @@
 - [x] Diagnose the reported `npm install` errors against QueueSync’s package manager, lockfile, scripts, and runtime requirements.
 - [x] Make repository installation instructions deterministic for the supported package manager without breaking the existing pnpm workflow.
 - [ ] Prepare and validate the genuine service-backed live demonstration using only authentic merchant-provided details or existing persisted records.
+- [x] Make `npm install` followed by `npm run dev` a supported and validated QueueSync development workflow while preserving pnpm compatibility.

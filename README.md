@@ -6,7 +6,14 @@ The product records booking, queue, resource, and service events in the database
 
 ## Installation and local development
 
-QueueSync is a **pnpm-managed** repository. The committed `pnpm-lock.yaml`, `pnpm-workspace.yaml`, and `patches/wouter@3.7.1.patch` files are part of the supported installation contract; plain `npm install` does not consume pnpm’s patched-dependency and override configuration and can produce resolution or peer-dependency errors. Use Node.js 20 or newer and run:
+QueueSync supports **npm and pnpm**. Use Node.js 20 or newer and run the npm workflow:
+
+```bash
+npm install
+npm run dev
+```
+
+The committed `package-lock.json` makes the npm install reproducible. The repository also retains its pnpm lockfile, workspace patch configuration, and package-manager metadata, so the equivalent pnpm workflow is:
 
 ```bash
 corepack enable
@@ -14,7 +21,7 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-Run `pnpm check` for static type validation and `pnpm test` for the core test suite. Use `pnpm desktop:dev` to open the Electron merchant shell against the local application. If an environment cannot use Corepack, install pnpm 10.4.1 or newer and run the same commands with `pnpm`.
+Run `npm run check` or `pnpm check` for static type validation and `npm test` or `pnpm test` for the core test suite. Use `npm run desktop:dev` or `pnpm desktop:dev` to open the Electron merchant shell.
 
 ## Documentation
 
