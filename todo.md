@@ -91,3 +91,6 @@
 - [x] Add regression coverage for service-specific slot creation and the completed service-backed real-time lifecycle.
 - [ ] Remove or redirect the legacy generic merchant slot-publishing surface so every visible slot action guides merchants through service-specific configuration.
 - [x] Document the deferred genuine-data demonstration handoff without generating artificial services, slots, bookings, queue records, notifications, or analytics.
+- [x] Diagnose the reported `npm install` errors against QueueSync’s package manager, lockfile, scripts, and runtime requirements.
+- [x] Make repository installation instructions deterministic for the supported package manager without breaking the existing pnpm workflow.
+- [ ] Prepare and validate the genuine service-backed live demonstration using only authentic merchant-provided details or existing persisted records.
