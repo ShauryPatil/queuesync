@@ -89,9 +89,13 @@
 - [x] Add service selection to merchant slot publishing and verify that service-specific slots persist and appear in the customer booking flow.
 - [ ] Run a real-record service-backed customer-to-merchant workflow through actual service setup, resource assignment, slot publishing, booking or queue join, merchant transitions, notifications, history, and analytics without inserting test data directly.
 - [x] Add regression coverage for service-specific slot creation and the completed service-backed real-time lifecycle.
-- [ ] Remove or redirect the legacy generic merchant slot-publishing surface so every visible slot action guides merchants through service-specific configuration.
+- [x] Remove or redirect the legacy generic merchant slot-publishing surface so every visible slot action guides merchants through service-specific configuration.
 - [x] Document the deferred genuine-data demonstration handoff without generating artificial services, slots, bookings, queue records, notifications, or analytics.
 - [x] Diagnose the reported `npm install` errors against QueueSync’s package manager, lockfile, scripts, and runtime requirements.
 - [x] Make repository installation instructions deterministic for the supported package manager without breaking the existing pnpm workflow.
 - [ ] Prepare and validate the genuine service-backed live demonstration using only authentic merchant-provided details or existing persisted records.
 - [x] Make `npm install` followed by `npm run dev` a supported and validated QueueSync development workflow while preserving pnpm compatibility.
+- [x] Replace the remaining legacy generic slot form inputs with a direct service-specific configuration CTA.
+- [x] Remove obsolete generic slot state and mutation wiring from the merchant workspace.
+- [x] Add a UI contract regression proving visible slot publishing routes directly to service-specific configuration.
+- [x] Remove the unused generic slot state and `createSlot` mutation from the merchant workspace after converting the visible surface to a direct service CTA.

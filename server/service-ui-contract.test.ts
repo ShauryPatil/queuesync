@@ -16,6 +16,10 @@ describe("QueueSync service-backed booking interface", () => {
 
   it("keeps the legacy resource view on the managed service path and prevents generic slot persistence", () => {
     expect(merchantWorkspace).toContain("Manage services");
+    expect(merchantWorkspace).toContain("Configure service & publish slot");
+    expect(merchantWorkspace).toContain('window.location.assign("/merchant/services")');
+    expect(merchantWorkspace).not.toContain("<select required value={slot.resourceId}");
+    expect(merchantWorkspace).not.toContain('type="date" value={slot.date}');
     expect(routers).toContain("Create service-specific booking slots from Manage services");
   });
 
