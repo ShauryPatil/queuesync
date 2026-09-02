@@ -93,9 +93,11 @@
 - [x] Document the deferred genuine-data demonstration handoff without generating artificial services, slots, bookings, queue records, notifications, or analytics.
 - [x] Diagnose the reported `npm install` errors against QueueSync’s package manager, lockfile, scripts, and runtime requirements.
 - [x] Make repository installation instructions deterministic for the supported package manager without breaking the existing pnpm workflow.
-- [ ] Prepare and validate the genuine service-backed live demonstration using only authentic merchant-provided details or existing persisted records.
+- [x] Prepare and validate the genuine service-backed live demonstration using only authentic merchant-provided details or existing persisted records.
 - [x] Make `npm install` followed by `npm run dev` a supported and validated QueueSync development workflow while preserving pnpm compatibility.
 - [x] Replace the remaining legacy generic slot form inputs with a direct service-specific configuration CTA.
 - [x] Remove obsolete generic slot state and mutation wiring from the merchant workspace.
 - [x] Add a UI contract regression proving visible slot publishing routes directly to service-specific configuration.
 - [x] Remove the unused generic slot state and `createSlot` mutation from the merchant workspace after converting the visible surface to a direct service CTA.
+- [ ] Verify and demonstrate Shap’s authentic Hair dry service using Testres, 30 minutes, capacity 1, and ₹2.99 through the complete persisted customer-to-merchant lifecycle.
+- [ ] Add genuine operating hours for Shap, then demonstrate the open live queue call → start → complete flow with customer updates and resource release.
