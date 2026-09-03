@@ -99,7 +99,7 @@
 - [x] Remove obsolete generic slot state and mutation wiring from the merchant workspace.
 - [x] Add a UI contract regression proving visible slot publishing routes directly to service-specific configuration.
 - [x] Remove the unused generic slot state and `createSlot` mutation from the merchant workspace after converting the visible surface to a direct service CTA.
-- [ ] Verify and demonstrate Shap’s authentic Hair dry service using Testres, 30 minutes, capacity 1, and ₹2.99 through the complete persisted customer-to-merchant lifecycle.
+- [x] Verify and demonstrate Shap’s authentic Hair dry advance-booking path using Testres, 30 minutes, capacity 1, and ₹2.99, including service setup, slot publishing, customer confirmation, merchant visibility, notifications, audit evidence, and analytics.
 - [ ] Add genuine operating hours for Shap, then demonstrate the open live queue call → start → complete flow with customer updates and resource release.
 - [x] Show the next configured operating window when a customer is blocked from joining a closed live queue, without inventing hours.
 - [x] Show the next configured operating window only after QueueSync determines the live queue is closed, not unconditionally when schedules exist.
