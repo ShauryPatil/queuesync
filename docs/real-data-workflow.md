@@ -21,7 +21,7 @@ The merchant signs in at `/merchant`, creates a business if necessary, and confi
 
 Customers discover businesses through database queries. On a business page, configured services appear only when active service records exist. Selecting a service filters customer-visible slots to that persisted service. Booking confirmation validates the exact slot, business, resource, time window, resource condition, optional service assignment, and conflicting booking records on the server before creating a booking.
 
-For a queue join, QueueSync verifies that the business is open according to its saved schedule, that a selected resource is currently available, that the optional service is assigned to that resource, and that the customer has no active entry at that business. A unique active-key constraint at the database layer prevents two near-simultaneous joins from creating duplicate active entries for the same customer and business.
+For a queue join, QueueSync verifies that the business is open according to its saved schedule, that a selected resource is currently available, that the optional service is assigned to that resource, and that the customer has no active entry at that business. A unique active-key constraint at the database layer prevents two near-simultaneous joins from creating duplicate active entries for the same customer and business. When a queue is closed, the customer-facing next-opening message uses the business record’s persisted `timezone` as the local schedule source of truth, not the browser’s timezone; passed same-day windows are skipped.
 
 ## Live multi-device demonstration
 

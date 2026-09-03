@@ -101,3 +101,15 @@
 - [x] Remove the unused generic slot state and `createSlot` mutation from the merchant workspace after converting the visible surface to a direct service CTA.
 - [ ] Verify and demonstrate Shap’s authentic Hair dry service using Testres, 30 minutes, capacity 1, and ₹2.99 through the complete persisted customer-to-merchant lifecycle.
 - [ ] Add genuine operating hours for Shap, then demonstrate the open live queue call → start → complete flow with customer updates and resource release.
+- [x] Show the next configured operating window when a customer is blocked from joining a closed live queue, without inventing hours.
+- [x] Show the next configured operating window only after QueueSync determines the live queue is closed, not unconditionally when schedules exist.
+- [x] Make next-opening calculation skip passed same-day windows and identify the true next local operating window.
+- [x] Add regression coverage for closed-queue messaging with schedules, same-day-after-close handling, and no-schedule behavior.
+- [x] Calculate Shap’s next operating window using the business timezone and document the local-time source of truth.
+- [x] Add behavioral tests for same-day-after-close, next-day fallback, and no-schedule next-opening cases.
+- [x] Add a runtime-style regression proving the next-opening message appears only after a closed-queue error.
+- [x] Document that next-opening messaging uses `business.timezone` as the local schedule source of truth.
+- [x] Add a rendered/component regression proving next-opening messaging appears only after a closed-queue error and stays hidden otherwise.
+- [ ] Add genuine operating hours for Shap that cover a live demo window, then join the Hair dry queue on Testres.
+- [ ] Complete and verify Hair dry queue call → start → complete transitions with customer updates, resource release, notification, audit, and final snapshots.
+- [x] Keep the Hair dry end-to-end item scoped to the validated booking path until the live queue transition path is demonstrated.

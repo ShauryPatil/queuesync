@@ -28,4 +28,16 @@ describe("QueueSync service-backed booking interface", () => {
     expect(businessDetails).toContain("slotId: selectedSlot.id");
     expect(businessDetails).toContain("Selected service:");
   });
+
+  it("only shows the next persisted opening after a closed-queue response and skips passed same-day windows", () => {
+    expect(businessDetails).toContain('join.error?.message.toLowerCase().includes("closed")');
+    expect(businessDetails).toContain("queueClosed && nextOperatingWindow");
+    expect(businessDetails).toContain("toMinutes(schedule.opensAt) > currentMinutes");
+    expect(businessDetails).toContain("export function getNextOperatingWindow(schedules");
+  });
+
+  it("keeps the no-schedule state truthful", () => {
+    expect(businessDetails).toContain("if (!openSchedules.length) return null");
+    expect(businessDetails).toContain("Operating schedule not yet published");
+  });
 });
